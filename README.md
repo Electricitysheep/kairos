@@ -6,6 +6,8 @@
   <a href="https://github.com/Electricitysheep/kairos/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Electricitysheep/kairos?style=flat-square" alt="License"></a>
   <a href="https://pypi.org/project/kairos/"><img src="https://img.shields.io/pypi/v/kairos?style=flat-square" alt="PyPI"></a>
   <a href="https://github.com/Electricitysheep/kairos"><img src="https://img.shields.io/github/stars/Electricitysheep/kairos?style=flat-square" alt="Stars"></a>
+  <br>
+  <a href="README.zh.md"><img src="https://img.shields.io/badge/Language-中文-E84D3D?style=flat-square" alt="中文"></a>
 </p>
 
 <p align="center">
