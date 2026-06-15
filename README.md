@@ -1,28 +1,19 @@
-# Kairos -- AI Trading Agents, Fully Transparent & Verifiable
+# Kairos
 
-<p align="center">
-  <a href="https://github.com/Electricitysheep/kairos"><img src="https://img.shields.io/badge/python-3.10%2B-blue?style=flat-square" alt="Python"></a>
-  <a href="https://github.com/Electricitysheep/kairos/actions"><img src="https://img.shields.io/github/actions/workflow/status/Electricitysheep/kairos/ci.yml?style=flat-square" alt="CI"></a>
-  <a href="https://github.com/Electricitysheep/kairos/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Electricitysheep/kairos?style=flat-square" alt="License"></a>
-  <a href="https://github.com/Electricitysheep/kairos/stargazers"><img src="https://img.shields.io/github/stars/Electricitysheep/kairos?style=flat-square" alt="Stars"></a>
-  <br>
-  <b><a href="README.zh.md">中文</a> | English</b>
-</p>
+AI Trading Agents, Fully Transparent &amp; Verifiable
 
----
+## Why Kairos?
 
-## Quick Start
+Most AI trading agents are black boxes. They give signals without showing their reasoning.
+Kairos changes that. Every decision comes with a complete reasoning trace,
+Walk-Forward backtesting, and Bootstrap statistical significance tests.
+
+### Install & Try
 
 ```bash
 pip install git+https://github.com/Electricitysheep/kairos.git
 kairos analyze AAPL
 ```
-
-## Why Kairos?
-
-Most crypto AI agents are black boxes. Kairos gives you **complete decision transparency** --
-every signal comes with a full reasoning trace, Walk-Forward backtesting, and Bootstrap
-statistical significance tests.
 
 ## Features
 
@@ -33,18 +24,33 @@ statistical significance tests.
 - **6 Built-in Strategies**: momentum, mean_reversion, conservative, rsi, bb, ensemble
 - **Paper + Live Trading**: Via Alpaca (free paper trading)
 - **HTML Reports**: One-click research report generation
+- **6 Data Sources**: Yahoo Finance, FRED, CoinGecko, DexScreener, Birdeye, Mock
 
 ## CLI Commands
 
 | Command | Description |
 |---------|-------------|
 | kairos analyze AAPL | Real-time stock/crypto analysis |
-| kairos leaderboard AAPL | Strategy ranking |
-| kairos backtest --token MSFT | Walk-Forward backtest |
+| kairos leaderboard AAPL | Rank all 6 strategies by performance |
+| kairos backtest | Walk-Forward backtesting |
 | kairos paper AAPL --qty 10 | Paper trading via Alpaca |
-| kairos report AAPL | HTML research report |
-| kairos dashboard | Interactive Streamlit dashboard |
+| kairos report AAPL | Generate HTML research report |
+| kairos dashboard | Launch interactive dashboard |
 | kairos demo | Zero-friction demo |
+
+## Custom Strategy Example
+
+```python
+from kairos.strategies.base import Strategy, StrategyContext, Signal
+
+class MyStrategy(Strategy):
+    def compute_signal(self, ctx):
+        price = ctx.latest()
+        if price > self.config.get('threshold', 100):
+            return Signal.buy(confidence=0.7,
+                reason=f'Price {price:.2f} above threshold')
+        return Signal.hold()
+```
 
 ## License
 
