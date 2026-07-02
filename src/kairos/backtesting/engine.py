@@ -154,13 +154,11 @@ class WalkForwardEngine:
 
         metrics = PerformanceMetrics(all_returns)
 
-        # Benchmark: buy-and-hold for the entire period
-        benchmark_returns: list[float] = []
-        for i in range(1, len(self.data)):
-            prev = float(self.data["close"].iloc[i - 1])
-            curr = float(self.data["close"].iloc[i])
-            if prev > 0:
-                benchmark_returns.append((curr - prev) / prev)
+        # Benchmark: buy-and-hold for the entire period (vectorized)
+        close = self.data["close"].astype(float)
+        prev_close = close.shift(1)
+        bench = (close - prev_close) / prev_close
+        benchmark_returns = bench[prev_close > 0].dropna().tolist()
         benchmark_metrics = PerformanceMetrics(benchmark_returns)
 
         return {

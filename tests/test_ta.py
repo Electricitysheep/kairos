@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-import pytest
 
 from kairos.indicators import TAAnalyzer
 
@@ -116,7 +115,9 @@ class TestComputeAll:
             "atr_14",
             "composite_score",
         }
-        assert set(result.keys()) == expected_keys, f"compute_all should return keys {expected_keys}, got {set(result.keys())}"
+        assert set(result.keys()) == expected_keys, (
+            f"compute_all should return keys {expected_keys}, got {set(result.keys())}"
+        )
 
     def test_composite_score_between_0_and_100(self):
         """Composite score should be between 0 and 100."""

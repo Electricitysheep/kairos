@@ -33,7 +33,15 @@ async def test_decision_contains_expected_keys():
     orchestrator = Orchestrator()
     result = await orchestrator.run(token="SOL/USDT", mode="demo", seed=42)
     decision = result["decision"]
-    expected_keys = ["decision", "size_usd", "max_slippage", "stop_loss", "take_profit", "is_risk_overridden", "decision_rationale"]
+    expected_keys = [
+        "decision",
+        "size_usd",
+        "max_slippage",
+        "stop_loss",
+        "take_profit",
+        "is_risk_overridden",
+        "decision_rationale",
+    ]
     for key in expected_keys:
         assert key in decision, f"Missing key: {key}"
 

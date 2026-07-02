@@ -236,7 +236,9 @@ class TestCoinGeckoProvider:
         with patch("httpx.AsyncClient") as mock_client:
             mock_client.return_value.__aenter__ = AsyncMock(return_value=mock_client.return_value)
             mock_client.return_value.__aexit__.return_value = None
-            mock_client.return_value.get = AsyncMock(return_value=make_mock_response(429, {"error": "rate limit exceeded"}))
+            mock_client.return_value.get = AsyncMock(
+                return_value=make_mock_response(429, {"error": "rate limit exceeded"})
+            )
 
             result = await provider.search_token("solana")
 

@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 import pandas as pd
-import pytest
 
-from kairos.strategies.base import Strategy, StrategyContext, Signal
+from kairos.strategies.base import Signal, Strategy, StrategyContext
 from kairos.strategies.registry import StrategyRegistry
 
 

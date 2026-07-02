@@ -104,6 +104,14 @@ async def test_output_contains_all_expected_keys():
         }
     )
     result = await agent.process(ctx)
-    expected_keys = ["decision", "size_usd", "max_slippage", "stop_loss", "take_profit", "is_risk_overridden", "decision_rationale"]
+    expected_keys = [
+        "decision",
+        "size_usd",
+        "max_slippage",
+        "stop_loss",
+        "take_profit",
+        "is_risk_overridden",
+        "decision_rationale",
+    ]
     for key in expected_keys:
         assert key in result.output

@@ -6,8 +6,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from kairos.agents.quant import QuantAgent
 from kairos.agents.base import AgentContext
+from kairos.agents.quant import QuantAgent
 
 
 def make_trend_data(n=100, trend="up"):

@@ -1,10 +1,7 @@
 """Tests for the DecisionJournal module."""
 
-import json
 import tempfile
 from pathlib import Path
-
-import pytest
 
 from kairos.core.journal import DecisionJournal, JournalEntry
 

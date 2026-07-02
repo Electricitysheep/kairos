@@ -71,12 +71,16 @@ def get_default_config() -> KairosConfig:
 def resolve_journal_path(config: KairosConfig) -> Path:
     """Resolve the journal file path.
 
+    Uses ``config.journal_path`` when set, otherwise falls back to
+    ``~/.kairos/journal.json``. The parent directory is created if missing.
+
     Args:
         config: KairosConfig instance.
 
     Returns:
-        Path to journal.json under ~/.kairos/
+        Resolved path to the journal file.
     """
-    path = Path("~/.kairos/journal.json").expanduser()
+    raw = config.journal_path or "~/.kairos/journal.json"
+    path = Path(raw).expanduser()
     path.parent.mkdir(parents=True, exist_ok=True)
     return path

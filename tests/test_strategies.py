@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from kairos.strategies.registry import StrategyRegistry, StrategyConfig
+from kairos.strategies.registry import StrategyConfig, StrategyRegistry
 
 
 class TestStrategyRegistry:

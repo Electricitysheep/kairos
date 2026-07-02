@@ -4,8 +4,6 @@ import os
 import tempfile
 from pathlib import Path
 
-import pytest
-
 from kairos.core.config import (
     KairosConfig,
     get_default_config,
@@ -133,4 +131,12 @@ class TestResolveJournalPath:
         monkeypatch.setattr(Path, "expanduser", lambda self: custom_path)
         config = KairosConfig()
         path = resolve_journal_path(config)
+        assert path.parent.exists()
+
+    def test_honors_configured_journal_path(self, tmp_path):
+        """A non-empty config.journal_path should be used verbatim."""
+        target = tmp_path / "custom" / "my_journal.json"
+        config = KairosConfig(journal_path=str(target))
+        path = resolve_journal_path(config)
+        assert path == target
         assert path.parent.exists()

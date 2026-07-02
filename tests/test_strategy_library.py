@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-import pandas as pd
-import pytest
-
-from kairos.strategies.builtin import (
-    RSIStrategy, BollingerBandsStrategy, EnsembleStrategy,
-    MomentumStrategy, BUILTIN_STRATEGIES,
-)
-from kairos.strategies.base import StrategyContext
 from kairos.data.mock import MockDataProvider
+from kairos.strategies.base import StrategyContext
+from kairos.strategies.builtin import (
+    BUILTIN_STRATEGIES,
+    BollingerBandsStrategy,
+    EnsembleStrategy,
+    MomentumStrategy,
+    RSIStrategy,
+)
 
 
 def _make_ctx(days: int = 100) -> StrategyContext:

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from kairos.agents.sentiment import SentimentAgent, _score_headline
 from kairos.agents.base import AgentContext
+from kairos.agents.sentiment import SentimentAgent, _score_headline
 
 
 class TestSentimentScoring:

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from kairos.backtesting.portfolio import SimulatedPortfolio, Trade, PortfolioSnapshot
+from kairos.backtesting.portfolio import SimulatedPortfolio
 
 
 class TestSimulatedPortfolio:

@@ -1,5 +1,6 @@
-from kairos.backtesting.splitter import WalkForwardSplitter, WindowIndices
 import pytest
+
+from kairos.backtesting.splitter import WalkForwardSplitter, WindowIndices
 
 
 class TestRollingSplitBasic:

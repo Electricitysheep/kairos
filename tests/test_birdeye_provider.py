@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-import httpx
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
 import pytest
 
 from kairos.data.providers.base import DataProviderError
