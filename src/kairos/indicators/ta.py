@@ -62,9 +62,7 @@ class TAAnalyzer:
         return rsi
 
     @staticmethod
-    def compute_macd(
-        df: pd.DataFrame, fast: int = 12, slow: int = 26, signal: int = 9
-    ) -> dict:
+    def compute_macd(df: pd.DataFrame, fast: int = 12, slow: int = 26, signal: int = 9) -> dict:
         """
         Compute MACD (Moving Average Convergence Divergence).
 
@@ -100,8 +98,7 @@ class TAAnalyzer:
         # Check for bullish cross (MACD crossed above signal in latest period)
         if len(macd_line) >= 2:
             is_bullish_cross = bool(
-                macd_line.iloc[-1] > signal_line.iloc[-1]
-                and macd_line.iloc[-2] <= signal_line.iloc[-2]
+                macd_line.iloc[-1] > signal_line.iloc[-1] and macd_line.iloc[-2] <= signal_line.iloc[-2]
             )
         else:
             is_bullish_cross = False
@@ -114,9 +111,7 @@ class TAAnalyzer:
         }
 
     @staticmethod
-    def compute_bollinger(
-        df: pd.DataFrame, period: int = 20, std_dev: float = 2.0
-    ) -> dict:
+    def compute_bollinger(df: pd.DataFrame, period: int = 20, std_dev: float = 2.0) -> dict:
         """
         Compute Bollinger Bands.
 
@@ -190,7 +185,7 @@ class TAAnalyzer:
             Latest ADX value (float)
         """
         TAAnalyzer._validate_columns(df, ["high", "low", "close"])
-        high, low, close = df["high"], df["low"], df["close"]
+        high, low = df["high"], df["low"]
         tr = TAAnalyzer._compute_tr(df)
 
         # Calculate Directional Movement
@@ -243,8 +238,7 @@ class TAAnalyzer:
         min_rows = 50
         if len(df) < min_rows:
             raise ValueError(
-                f"DataFrame has {len(df)} rows, need at least {min_rows} "
-                f"for reliable indicator computation"
+                f"DataFrame has {len(df)} rows, need at least {min_rows} for reliable indicator computation"
             )
 
         rsi_series = TAAnalyzer.compute_rsi(df, period=14)

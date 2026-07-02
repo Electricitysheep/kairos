@@ -17,6 +17,7 @@ import httpx
 @dataclass
 class AlpacaOrder:
     """Represents a trade order placed via Alpaca."""
+
     id: str
     symbol: str
     side: str  # "buy" or "sell"
@@ -30,14 +31,14 @@ class AlpacaOrder:
 
 class AlpacaBroker:
     """Lightweight Alpaca Trading API client.
-    
+
     Uses httpx (no alpaca-py dependency needed).
     Supports paper trading by default; set ALPACA_LIVE=true for real money.
     """
-    
+
     PAPER_URL = "https://paper-api.alpaca.markets"
     LIVE_URL = "https://api.alpaca.markets"
-    
+
     def __init__(self, api_key: str = "", secret_key: str = "", live: bool = False):
         self.api_key = api_key or os.environ.get("ALPACA_API_KEY_ID", "")
         self.secret_key = secret_key or os.environ.get("ALPACA_SECRET_KEY", "")
@@ -51,11 +52,11 @@ class AlpacaBroker:
             },
             timeout=15,
         )
-    
+
     @property
     def is_connected(self) -> bool:
         return bool(self.api_key and self.secret_key)
-    
+
     async def get_account(self) -> dict:
         """Get account info: equity, cash, buying power."""
         r = await self._client.get("/v2/account")
@@ -68,25 +69,26 @@ class AlpacaBroker:
             "status": data.get("status", ""),
             "daytrade_count": data.get("daytrade_count", 0),
         }
-    
+
     async def get_positions(self) -> list[dict]:
         """Get current open positions."""
         r = await self._client.get("/v2/positions")
         r.raise_for_status()
         positions = []
         for p in r.json():
-            positions.append({
-                "symbol": p.get("symbol", ""),
-                "qty": float(p.get("qty", 0)),
-                "market_value": float(p.get("market_value", 0)),
-                "cost_basis": float(p.get("cost_basis", 0)),
-                "unrealized_pl": float(p.get("unrealized_pl", 0)),
-                "current_price": float(p.get("current_price", 0)),
-            })
+            positions.append(
+                {
+                    "symbol": p.get("symbol", ""),
+                    "qty": float(p.get("qty", 0)),
+                    "market_value": float(p.get("market_value", 0)),
+                    "cost_basis": float(p.get("cost_basis", 0)),
+                    "unrealized_pl": float(p.get("unrealized_pl", 0)),
+                    "current_price": float(p.get("current_price", 0)),
+                }
+            )
         return positions
-    
-    async def place_order(self, symbol: str, side: str, qty: float,
-                          order_type: str = "market") -> AlpacaOrder:
+
+    async def place_order(self, symbol: str, side: str, qty: float, order_type: str = "market") -> AlpacaOrder:
         """Place a market or limit order."""
         data: dict[str, Any] = {
             "symbol": symbol,
@@ -109,22 +111,22 @@ class AlpacaBroker:
             filled_avg_price=float(o.get("filled_avg_price", 0)),
             created_at=o.get("created_at", ""),
         )
-    
+
     async def close_position(self, symbol: str) -> bool:
         """Close an open position."""
         r = await self._client.delete(f"/v2/positions/{symbol}")
         return r.status_code == 200
-    
+
     async def close_all_positions(self) -> list[dict]:
         """Close all open positions."""
         r = await self._client.delete("/v2/positions")
         if r.status_code == 200:
             return r.json()
         return []
-    
+
     async def get_orders(self, status: str = "closed", limit: int = 25) -> list[AlpacaOrder]:
         """Get recent orders."""
-        r = await self._client.get(f"/v2/orders", params={"status": status, "limit": limit})
+        r = await self._client.get("/v2/orders", params={"status": status, "limit": limit})
         r.raise_for_status()
         return [
             AlpacaOrder(
@@ -140,7 +142,7 @@ class AlpacaBroker:
             )
             for o in r.json()
         ]
-    
+
     async def health_check(self) -> bool:
         """Check if API is accessible."""
         if not self.is_connected:
@@ -150,6 +152,6 @@ class AlpacaBroker:
             return True
         except Exception:
             return False
-    
+
     async def close(self):
         await self._client.aclose()

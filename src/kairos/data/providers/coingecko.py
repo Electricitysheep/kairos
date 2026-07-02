@@ -46,9 +46,7 @@ class CoinGeckoProvider(DataProvider):
         elif response.status_code == 404:
             raise DataProviderError(f"Token not found on CoinGecko: {response.url}")
         elif response.status_code >= 400:
-            raise DataProviderError(
-                f"CoinGecko API error ({response.status_code}): {response.text}"
-            )
+            raise DataProviderError(f"CoinGecko API error ({response.status_code}): {response.text}")
 
     async def fetch_price_data(self, token: str, days: int = 30) -> pd.DataFrame:
         """Fetch OHLCV price data.
@@ -66,7 +64,7 @@ class CoinGeckoProvider(DataProvider):
             DataProviderError: If token not found or rate limited.
         """
         url = f"{self.BASE_URL}/coins/{token}/ohlc"
-        params = {"days": days, "vs_currency": "usd"}
+        params: dict[str, str | int] = {"days": days, "vs_currency": "usd"}
 
         async with httpx.AsyncClient(headers=self._get_headers()) as client:
             try:

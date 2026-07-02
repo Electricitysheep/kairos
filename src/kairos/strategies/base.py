@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any
 
 import pandas as pd
 
@@ -12,6 +11,7 @@ import pandas as pd
 @dataclass
 class Signal:
     """Trading signal produced by a Strategy."""
+
     action: str  # "BUY", "SELL", "HOLD"
     confidence: float = 0.5
     reason: str = ""
@@ -68,10 +68,10 @@ class Strategy(ABC):
     @abstractmethod
     def compute_signal(self, ctx: StrategyContext) -> Signal:
         """Compute a trading signal from market data and indicators.
-        
+
         Args:
             ctx: StrategyContext with prices, volume, and config.
-        
+
         Returns:
             Signal with action, confidence, and reasoning.
         """

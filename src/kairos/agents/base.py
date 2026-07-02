@@ -18,6 +18,7 @@ class AgentContext(BaseModel):
 def _utc_timestamp() -> str:
     """Generate a UTC ISO format timestamp."""
     from datetime import datetime, timezone
+
     return datetime.now(timezone.utc).isoformat()
 
 

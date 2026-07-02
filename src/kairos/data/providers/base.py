@@ -15,9 +15,7 @@ class DataProvider(ABC):
     """Abstract interface for market data providers."""
 
     @abstractmethod
-    async def fetch_price_data(
-        self, token: str, days: int = 30
-    ) -> pd.DataFrame:
+    async def fetch_price_data(self, token: str, days: int = 30) -> pd.DataFrame:
         """Fetch OHLCV price data for a token.
 
         Args:

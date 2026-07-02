@@ -8,30 +8,108 @@ from kairos.agents.base import AgentBase, AgentContext, AgentResult
 
 # Simple keyword-based sentiment lexicon
 _POSITIVE_WORDS = {
-    "bullish", "beat", "beats", "growth", "profit", "profits", "upgrade",
-    "upgrades", "positive", "outperform", "buy", "strong", "momentum",
-    "record", "surge", "surges", "gain", "gains", "rally", "rallies",
-    "breakthrough", "innovation", "partnership", "expansion", "dividend",
-    "buyback", "upgraded", "upbeat", "soar", "soars", "boom", "booming",
-    "opportunity", "confidence", "optimistic", "breakout", "rising",
-    "upward", "recovery", "rebound", "thriving", "prosper", "success",
+    "bullish",
+    "beat",
+    "beats",
+    "growth",
+    "profit",
+    "profits",
+    "upgrade",
+    "upgrades",
+    "positive",
+    "outperform",
+    "buy",
+    "strong",
+    "momentum",
+    "record",
+    "surge",
+    "surges",
+    "gain",
+    "gains",
+    "rally",
+    "rallies",
+    "breakthrough",
+    "innovation",
+    "partnership",
+    "expansion",
+    "dividend",
+    "buyback",
+    "upgraded",
+    "upbeat",
+    "soar",
+    "soars",
+    "boom",
+    "booming",
+    "opportunity",
+    "confidence",
+    "optimistic",
+    "breakout",
+    "rising",
+    "upward",
+    "recovery",
+    "rebound",
+    "thriving",
+    "prosper",
+    "success",
 }
 
 _NEGATIVE_WORDS = {
-    "bearish", "downgrade", "downgrades", "loss", "losses", "decline",
-    "declines", "negative", "underperform", "sell", "weak", "volatility",
-    "crash", "crashes", "drop", "drops", "fall", "falls", "plunge",
-    "plunges", "downturn", "recession", "inflation", "layoff", "layoffs",
-    "lawsuit", "investigation", "fraud", "scandal", "debt", "bankruptcy",
-    "downgraded", "gloomy", "uncertainty", "risk", "risks", "slump",
-    "slumps", "tumble", "tumbles", "slip", "slips", "woe", "woes",
-    "crisis", "slowdown", "deficit", "cut", "cuts", "firing",
+    "bearish",
+    "downgrade",
+    "downgrades",
+    "loss",
+    "losses",
+    "decline",
+    "declines",
+    "negative",
+    "underperform",
+    "sell",
+    "weak",
+    "volatility",
+    "crash",
+    "crashes",
+    "drop",
+    "drops",
+    "fall",
+    "falls",
+    "plunge",
+    "plunges",
+    "downturn",
+    "recession",
+    "inflation",
+    "layoff",
+    "layoffs",
+    "lawsuit",
+    "investigation",
+    "fraud",
+    "scandal",
+    "debt",
+    "bankruptcy",
+    "downgraded",
+    "gloomy",
+    "uncertainty",
+    "risk",
+    "risks",
+    "slump",
+    "slumps",
+    "tumble",
+    "tumbles",
+    "slip",
+    "slips",
+    "woe",
+    "woes",
+    "crisis",
+    "slowdown",
+    "deficit",
+    "cut",
+    "cuts",
+    "firing",
 }
 
 
 def _score_headline(text: str) -> tuple[float, str]:
     """Score a headline as positive, negative, or neutral.
-    
+
     Returns (score, label) where score is -1.0 to 1.0.
     """
     words = set(re.findall(r"[a-zA-Z]+", text.lower()))
@@ -50,7 +128,7 @@ def _score_headline(text: str) -> tuple[float, str]:
 
 class SentimentAgent(AgentBase):
     """Agent that analyzes news sentiment for a trading asset.
-    
+
     Fetches recent headlines and computes a sentiment score.
     Uses keyword-based analysis (no external API needed).
     Supports FinBERT for more accurate analysis (optional).
@@ -76,13 +154,18 @@ class SentimentAgent(AgentBase):
         except Exception as e:
             return AgentResult(
                 agent_name=self.name,
-                output={"error": f"Sentiment fetch failed: {e}", "sentiment": "neutral", "score": 0.0},
+                output={
+                    "error": f"Sentiment fetch failed: {e}",
+                    "sentiment": "neutral",
+                    "score": 0.0,
+                },
                 confidence=0.3,
                 reasoning=f"Failed to fetch sentiment for {token}: {e}",
             )
 
     def _mock_sentiment(self, token: str) -> AgentResult:
         import random
+
         rng = random.Random(hash(token) % (2**32))
         sentiments = ["bullish", "bearish", "neutral"]
         weights = [0.4, 0.3, 0.3]
@@ -95,7 +178,8 @@ class SentimentAgent(AgentBase):
                 "score": round(score, 3),
                 "token": token,
                 "headlines": [
-                    f"{token} shows {sentiment} signals in recent trading" if sentiment != "neutral"
+                    f"{token} shows {sentiment} signals in recent trading"
+                    if sentiment != "neutral"
                     else f"{token} trading mixed in recent session",
                 ],
                 "article_count": rng.randint(3, 15),

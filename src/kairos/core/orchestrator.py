@@ -20,6 +20,7 @@ class Orchestrator:
     def research_agent(self):
         if self._research_agent is None:
             from kairos.agents.research import ResearchAgent
+
             self._research_agent = ResearchAgent(self.config)
         return self._research_agent
 
@@ -27,6 +28,7 @@ class Orchestrator:
     def quant_agent(self):
         if self._quant_agent is None:
             from kairos.agents.quant import QuantAgent
+
             self._quant_agent = QuantAgent(self.config)
         return self._quant_agent
 
@@ -34,6 +36,7 @@ class Orchestrator:
     def risk_agent(self):
         if self._risk_agent is None:
             from kairos.agents.risk import RiskAgent
+
             self._risk_agent = RiskAgent(self.config)
         return self._risk_agent
 
@@ -41,6 +44,7 @@ class Orchestrator:
     def executor_agent(self):
         if self._executor_agent is None:
             from kairos.agents.executor import ExecutorAgent
+
             self._executor_agent = ExecutorAgent(self.config, journal=self.journal)
         return self._executor_agent
 
@@ -48,6 +52,7 @@ class Orchestrator:
     def sentiment_agent(self):
         if self._sentiment_agent is None:
             from kairos.agents.sentiment import SentimentAgent
+
             self._sentiment_agent = SentimentAgent(self.config)
         return self._sentiment_agent
 
@@ -57,17 +62,18 @@ class Orchestrator:
         mode: str = "demo",
         seed: int = 42,
     ) -> dict:
-        research_result = await self.research_agent.process(AgentContext(
-            input_data={"token": token, "mode": mode, "seed": seed}
-        ))
+        research_result = await self.research_agent.process(
+            AgentContext(input_data={"token": token, "mode": mode, "seed": seed})
+        )
 
         ohlcv = research_result.output.get("ohlcv")
         if isinstance(ohlcv, dict):
             import pandas as pd
+
             ohlcv = pd.DataFrame.from_dict(ohlcv, orient="index")
-        quant_result = await self.quant_agent.process(AgentContext(
-            input_data={"ohlcv": ohlcv, "token": token, "mode": mode}
-        ))
+        quant_result = await self.quant_agent.process(
+            AgentContext(input_data={"ohlcv": ohlcv, "token": token, "mode": mode})
+        )
 
         ap = self.config.get("agent_params", {}).get("default", {})
         risk_context = AgentContext(
@@ -83,9 +89,7 @@ class Orchestrator:
         )
         risk_result = await self.risk_agent.process(risk_context)
 
-        sentiment_result = await self.sentiment_agent.process(AgentContext(
-            input_data={"token": token, "mode": mode}
-        ))
+        sentiment_result = await self.sentiment_agent.process(AgentContext(input_data={"token": token, "mode": mode}))
 
         executor_context = AgentContext(
             input_data={

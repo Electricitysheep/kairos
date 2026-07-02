@@ -24,9 +24,7 @@ class BirdeyeProvider(DataProvider):
         Returns DataFrame with columns: open, high, low, close, volume
         """
         if not self.api_key:
-            raise DataProviderError(
-                "Birdeye API key required. Set BIRDEYE_API_KEY environment variable."
-            )
+            raise DataProviderError("Birdeye API key required. Set BIRDEYE_API_KEY environment variable.")
 
         from_time = pd.Timestamp.now() - pd.Timedelta(days=days)
         to_time = pd.Timestamp.now()
@@ -35,7 +33,7 @@ class BirdeyeProvider(DataProvider):
             raise DataProviderError("Invalid timestamp calculation")
 
         url = f"{self.BASE_URL}/price/multiple"
-        params = {
+        params: dict[str, str | int] = {
             "address": token,
             "from": int(from_time.value / 1e9),
             "to": int(to_time.value / 1e9),
@@ -44,9 +42,7 @@ class BirdeyeProvider(DataProvider):
 
         try:
             async with httpx.AsyncClient() as client:
-                response = await client.get(
-                    url, headers=headers, params=params, timeout=30
-                )
+                response = await client.get(url, headers=headers, params=params, timeout=30)
                 response.raise_for_status()
                 data = response.json()
         except httpx.HTTPStatusError as e:
@@ -88,9 +84,7 @@ class BirdeyeProvider(DataProvider):
         Uses Birdeye price endpoint for current price + 24h change.
         """
         if not self.api_key:
-            raise DataProviderError(
-                "Birdeye API key required. Set BIRDEYE_API_KEY environment variable."
-            )
+            raise DataProviderError("Birdeye API key required. Set BIRDEYE_API_KEY environment variable.")
 
         url = f"{self.BASE_URL}/price"
         params = {"address": token}
@@ -98,9 +92,7 @@ class BirdeyeProvider(DataProvider):
 
         try:
             async with httpx.AsyncClient() as client:
-                response = await client.get(
-                    url, headers=headers, params=params, timeout=30
-                )
+                response = await client.get(url, headers=headers, params=params, timeout=30)
                 response.raise_for_status()
                 data = response.json()
         except httpx.HTTPStatusError as e:

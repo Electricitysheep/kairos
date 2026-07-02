@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import asyncio
 from pathlib import Path
+from typing import Literal
 
-import streamlit as st
 import pandas as pd
+import streamlit as st
 
 from kairos.core.orchestrator import Orchestrator
 
@@ -21,7 +22,8 @@ st.set_page_config(
 
 # ── Custom CSS for professional quant aesthetic ──────────────────────────────
 
-st.markdown("""
+st.markdown(
+    """
 <style>
     .main-header {
         font-size: 1.8rem;
@@ -96,19 +98,28 @@ st.markdown("""
         border-bottom: 1px solid #1e3a5f;
     }
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 
 def run() -> None:
     st.markdown('<div class="main-header">Kairos</div>', unsafe_allow_html=True)
-    st.markdown('<div class="sub-header">AI Trading Agents &middot; Fully Transparent &amp; Verifiable</div>',
-                unsafe_allow_html=True)
+    st.markdown(
+        '<div class="sub-header">AI Trading Agents &middot; Fully Transparent &amp; Verifiable</div>',
+        unsafe_allow_html=True,
+    )
 
     # ── Sidebar ──────────────────────────────────────────────────────────────
-    token = st.sidebar.text_input("Asset", value="SOL/USDT", key="token",
-                                  help="Stock ticker (AAPL), crypto (BTC-USD), or mock")
-    mode = st.sidebar.selectbox("Mode", ["demo", "live"], index=0, key="mode",
-                                help="demo = mock data, live = real API data")
+    token = st.sidebar.text_input(
+        "Asset",
+        value="SOL/USDT",
+        key="token",
+        help="Stock ticker (AAPL), crypto (BTC-USD), or mock",
+    )
+    mode = st.sidebar.selectbox(
+        "Mode", ["demo", "live"], index=0, key="mode", help="demo = mock data, live = real API data"
+    )
     seed = st.sidebar.number_input("Seed", value=42, min_value=0, key="seed")
 
     col1, col2 = st.sidebar.columns(2)
@@ -171,6 +182,7 @@ def _run_analysis(token: str, mode: str, seed: int) -> None:
 #  RESULTS DISPLAY
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def _display_results(result: dict) -> None:
     decision = result.get("decision", {})
     trace = result.get("trace", {})
@@ -194,6 +206,7 @@ def _display_results(result: dict) -> None:
 # ═══════════════════════════════════════════════════════════════════════════════
 #  COMPONENTS
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def _show_decision_banner(decision: dict) -> None:
     d = decision.get("decision", "HOLD")
@@ -221,7 +234,7 @@ def _show_decision_banner(decision: dict) -> None:
             </div>
             <div class="meta" style="margin-top:0.6rem;">
                 {rationale[:200]}
-                {'[Risk Override Active]' if risk_overridden else ''}
+                {"[Risk Override Active]" if risk_overridden else ""}
             </div>
         </div>
         """,
@@ -248,11 +261,11 @@ def _show_agent_reasoning(trace: list) -> None:
 
         st.markdown(
             f"""
-            <div class="agent-card" style="border-left-color: {style['color']};">
+            <div class="agent-card" style="border-left-color: {style["color"]};">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <div>
-                        <span class="agent-name" style="color: {style['color']};">
-                            {style['icon']} {style['title']} Agent
+                        <span class="agent-name" style="color: {style["color"]};">
+                            {style["icon"]} {style["title"]} Agent
                         </span>
                         <span class="agent-conf">Confidence: {confidence:.0%}</span>
                     </div>
@@ -273,8 +286,10 @@ def _show_agent_reasoning(trace: list) -> None:
             cols[2].metric("ADX", f"{output.get('adx_14', 0):.1f}", help="Average Directional Index")
             cols[3].metric("ATR", f"{output.get('atr_14', 0):.2f}", help="Average True Range")
             sig_col = "green" if signal == "bullish" else ("red" if signal == "bearish" else "gray")
-            cols[4].markdown(f"**Signal**<br><span style='color:{sig_col};font-weight:600;'>{signal.upper()}</span>",
-                             unsafe_allow_html=True)
+            cols[4].markdown(
+                f"**Signal**<br><span style='color:{sig_col};font-weight:600;'>{signal.upper()}</span>",
+                unsafe_allow_html=True,
+            )
 
         elif name == "risk":
             rr = output
@@ -285,8 +300,10 @@ def _show_agent_reasoning(trace: list) -> None:
             safe = rr.get("is_safe", True)
             safe_text = "Safe" if safe else "Risk"
             safe_color = "green" if safe else "red"
-            cols[3].markdown(f"**Status**<br><span style='color:{safe_color};font-weight:600;'>{safe_text}</span>",
-                             unsafe_allow_html=True)
+            cols[3].markdown(
+                f"**Status**<br><span style='color:{safe_color};font-weight:600;'>{safe_text}</span>",
+                unsafe_allow_html=True,
+            )
 
 
 def _show_decision_pipeline(trace: list) -> None:
@@ -296,12 +313,13 @@ def _show_decision_pipeline(trace: list) -> None:
     for agent_result in trace:
         name = agent_result.get("agent_name", "?")
         confidence = agent_result.get("confidence", 0)
-        d = agent_result.get("output", {}).get("decision", "")
-        steps.append({
-            "Step": name.title(),
-            "Confidence": f"{confidence:.0%}",
-            "Influence": "Decision" if name == "executor" else "Signal",
-        })
+        steps.append(
+            {
+                "Step": name.title(),
+                "Confidence": f"{confidence:.0%}",
+                "Influence": "Decision" if name == "executor" else "Signal",
+            }
+        )
 
     if steps:
         st.dataframe(
@@ -366,8 +384,7 @@ def _show_data_sources(trace: list) -> None:
         quality = research_output.get("data_quality", "unknown")
         quality_color = {"excellent": "green", "good": "green", "fair": "orange", "unknown": "gray"}
         st.markdown(
-            f"Data Quality: "
-            f"<span style='color:{quality_color.get(quality, 'gray')};'>{quality.title()}</span>",
+            f"Data Quality: <span style='color:{quality_color.get(quality, 'gray')};'>{quality.title()}</span>",
             unsafe_allow_html=True,
         )
 
@@ -380,9 +397,13 @@ def _show_data_sources(trace: list) -> None:
 
             metrics = st.columns(2, gap="small")
             metrics[0].metric("Price", f"${current:.2f}")
-            delta_color = "inverse" if change < 0 else "normal"
-            metrics[1].metric("24h Change", f"{change:+.2f}%", delta=f"{abs(change):.2f}%",
-                              delta_color=delta_color)
+            delta_color: Literal["inverse", "normal"] = "inverse" if change < 0 else "normal"
+            metrics[1].metric(
+                "24h Change",
+                f"{change:+.2f}%",
+                delta=f"{abs(change):.2f}%",
+                delta_color=delta_color,
+            )
 
             metrics = st.columns(2, gap="small")
             metrics[0].metric("24h High", f"${h24:.2f}")

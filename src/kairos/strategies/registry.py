@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 @dataclass
 class StrategyConfig:
     """Configuration for a trading strategy (dict-based, backward compat)."""
+
     name: str
     description: str
     agent_config: dict
@@ -31,11 +32,12 @@ class StrategyRegistry:
         self._load_builtins()
 
     def _load_builtins(self) -> None:
-        from kairos.strategies.builtin import BUILTIN_STRATEGIES, BUILTIN_CONFIGS
+        from kairos.strategies.builtin import BUILTIN_CONFIGS, BUILTIN_STRATEGIES
+
         self._configs.update(BUILTIN_CONFIGS)
         self._classes.update(BUILTIN_STRATEGIES)
 
-    def list(self) -> list[str]:
+    def names(self) -> list[str]:
         return list(self._configs.keys())
 
     def get(self, name: str) -> StrategyConfig:
@@ -52,13 +54,18 @@ class StrategyRegistry:
     def register(self, config: StrategyConfig) -> None:
         self._configs[config.name] = config
 
-    def register_class(self, name: str, strategy_class: type[Strategy],
-                       description: str = "", agent_config: dict | None = None) -> None:
+    def register_class(
+        self,
+        name: str,
+        strategy_class: type[Strategy],
+        description: str = "",
+        agent_config: dict | None = None,
+    ) -> None:
         """Register a custom Strategy subclass.
-        
+
         Example:
             class MyStrategy(Strategy): ...
-            registry.register_class("my_strat", MyStrategy, 
+            registry.register_class("my_strat", MyStrategy,
                                     description="My custom strategy")
         """
         self._classes[name] = strategy_class

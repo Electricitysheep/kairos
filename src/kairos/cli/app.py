@@ -5,12 +5,12 @@ from __future__ import annotations
 import asyncio
 from pathlib import Path
 
-import typer
 import rich.box
+import typer
+from rich import print as rprint
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-from rich import print as rprint
 
 from kairos import __version__
 from kairos.core.orchestrator import Orchestrator
@@ -30,7 +30,7 @@ def demo(
 async def _run_demo(token: str, seed: int) -> None:
     console.print(Panel(f"[bold cyan]Kairos Demo[/bold cyan] - Analyzing {token}", style="cyan"))
 
-    with console.status("[bold green]Running agent pipeline...") as status:
+    with console.status("[bold green]Running agent pipeline..."):
         orchestrator = Orchestrator()
         result = await orchestrator.run(token=token, mode="demo", seed=seed)
 
@@ -51,7 +51,7 @@ async def _run_demo(token: str, seed: int) -> None:
     if decision.get("size_usd"):
         console.print(f"  Position Size: ${decision['size_usd']:.2f}")
     if decision.get("is_risk_overridden"):
-        console.print(f"  [red]Risk Override Active[/red]")
+        console.print("  [red]Risk Override Active[/red]")
 
     console.print(f"\n  [dim]Rationale: {decision.get('decision_rationale', '')}[/dim]")
 
@@ -100,8 +100,27 @@ def _is_stock_ticker(ticker: str) -> bool:
     up = ticker.upper()
     if "-USD" in up or "/" in up or up in ("BTC", "ETH", "SOL", "DOGE", "XRP"):
         return False
-    if up in ("SPY", "QQQ", "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "TSLA", "META",
-              "GLD", "SLV", "TLT", "IWM", "VTI", "VOO", "BND", "DIA", "XLF", "XLK"):
+    if up in (
+        "SPY",
+        "QQQ",
+        "AAPL",
+        "MSFT",
+        "GOOGL",
+        "AMZN",
+        "NVDA",
+        "TSLA",
+        "META",
+        "GLD",
+        "SLV",
+        "TLT",
+        "IWM",
+        "VTI",
+        "VOO",
+        "BND",
+        "DIA",
+        "XLF",
+        "XLK",
+    ):
         return True
     return len(ticker) <= 5 and ticker.isalpha()
 
@@ -109,8 +128,12 @@ def _is_stock_ticker(ticker: str) -> bool:
 @app.command()
 def backtest(
     token: str = typer.Option("SOL/USDT", "--token", "-t", help="Trading pair / stock ticker"),
-    strategy: str = typer.Option("momentum", "--strategy", "-s",
-                                 help="Strategy name (momentum, mean_reversion, conservative)"),
+    strategy: str = typer.Option(
+        "momentum",
+        "--strategy",
+        "-s",
+        help="Strategy name (momentum, mean_reversion, conservative)",
+    ),
     days: int = typer.Option(365, "--days", "-d", help="Days of data for backtest"),
     train_size: int = typer.Option(90, "--train", help="Training window size"),
     test_size: int = typer.Option(30, "--test", help="Test window size"),
@@ -125,19 +148,25 @@ def backtest(
     asyncio.run(_run_backtest(token, strategy, days, train_size, test_size, max_windows))
 
 
-async def _run_backtest(token: str, strategy: str, days: int, train_size: int, test_size: int,
-                         max_windows: int | None = None) -> None:
-    from kairos.strategies.registry import StrategyRegistry
-    from kairos.data.mock import MockDataProvider
+async def _run_backtest(
+    token: str,
+    strategy: str,
+    days: int,
+    train_size: int,
+    test_size: int,
+    max_windows: int | None = None,
+) -> None:
     from kairos.backtesting.engine import WalkForwardEngine
+    from kairos.data.mock import MockDataProvider
     from kairos.statistics.bootstrap import BootstrapSignificanceTest
+    from kairos.strategies.registry import StrategyRegistry
 
     registry = StrategyRegistry()
     try:
         cfg = registry.get(strategy)
     except KeyError:
         console.print(f"[red]Unknown strategy: {strategy}[/red]")
-        console.print(f"Available: {registry.list()}")
+        console.print(f"Available: {registry.names()}")
         raise typer.Exit(code=1)
 
     console.print(Panel(f"[bold cyan]Backtest[/bold cyan] - {cfg.name}: {cfg.description}", style="cyan"))
@@ -145,13 +174,18 @@ async def _run_backtest(token: str, strategy: str, days: int, train_size: int, t
     if _is_stock_ticker(token):
         with console.status(f"[bold green]Fetching {token} data via Yahoo Finance..."):
             from kairos.data.providers.yahoofinance import YahooFinanceProvider
+
             provider = YahooFinanceProvider()
             df = await provider.fetch_price_data(token, days=days)
         console.print(f"  [dim]Loaded {len(df)} rows for {token}[/dim]")
     else:
         df = MockDataProvider.generate_price_data(days=days // 30 + 1, seed=42)
-    engine = WalkForwardEngine(df, train_size=train_size, test_size=test_size,
-                                 max_windows=max_windows if max_windows else None)
+    engine = WalkForwardEngine(
+        df,
+        train_size=train_size,
+        test_size=test_size,
+        max_windows=max_windows if max_windows else None,
+    )
 
     with console.status("[bold green]Running backtest...") as status:
         progress = {"current": 0, "total": 0}
@@ -169,8 +203,12 @@ async def _run_backtest(token: str, strategy: str, days: int, train_size: int, t
             bst = BootstrapSignificanceTest(result["all_returns"], n_iterations=500, seed=42)
             sig = bst.run()
         else:
-            sig = {"sharpe_observed": 0, "p_value": 1.0,
-                   "is_significant": False, "sharpe_ci_95": (0, 0)}
+            sig = {
+                "sharpe_observed": 0,
+                "p_value": 1.0,
+                "is_significant": False,
+                "sharpe_ci_95": (0, 0),
+            }
 
     agg = result["aggregate"]
     bench = result.get("benchmark", {})
@@ -184,7 +222,7 @@ async def _run_backtest(token: str, strategy: str, days: int, train_size: int, t
 
     strat_ret = f"{agg['cumulative_return']:.2%}"
     bench_ret = f"{bench.get('cumulative_return', 0):.2%}"
-    ret_diff = agg['cumulative_return'] - bench.get('cumulative_return', 0)
+    ret_diff = agg["cumulative_return"] - bench.get("cumulative_return", 0)
     diff_str = f"{ret_diff:+.2%}" if ret_diff != 0 else "—"
     table.add_row("Cumulative Return", strat_ret, bench_ret, diff_str)
 
@@ -211,8 +249,12 @@ async def _run_backtest(token: str, strategy: str, days: int, train_size: int, t
 @app.command()
 def analyze(
     token: str = typer.Argument(..., help="Stock ticker (AAPL) or crypto pair (BTC-USD)"),
-    strategy: str = typer.Option("momentum", "--strategy", "-s",
-                                  help="Strategy name (momentum, mean_reversion, conservative)"),
+    strategy: str = typer.Option(
+        "momentum",
+        "--strategy",
+        "-s",
+        help="Strategy name (momentum, mean_reversion, conservative)",
+    ),
     days: int = typer.Option(365, "--days", "-d", help="Days of historical data"),
 ):
     """Analyze a stock or crypto asset using the full AI agent pipeline.
@@ -244,25 +286,29 @@ def _sparkline(data: list[float], width: int = 40) -> str:
 
 
 async def _run_analyze(token: str, strategy: str, days: int) -> None:
-    from kairos.strategies.registry import StrategyRegistry
-    from kairos.data.providers.yahoofinance import YahooFinanceProvider
+    from kairos.agents.base import AgentContext
+    from kairos.agents.executor import ExecutorAgent
     from kairos.agents.quant import QuantAgent
     from kairos.agents.risk import RiskAgent
-    from kairos.agents.executor import ExecutorAgent
-    from kairos.agents.base import AgentContext
     from kairos.core.journal import DecisionJournal
+    from kairos.data.providers.yahoofinance import YahooFinanceProvider
+    from kairos.strategies.registry import StrategyRegistry
 
     registry = StrategyRegistry()
     try:
         cfg = registry.get(strategy)
     except KeyError:
         console.print(f"[red]Unknown strategy: {strategy}[/red]")
-        console.print(f"Available: {registry.list()}")
+        console.print(f"Available: {registry.names()}")
         raise typer.Exit(code=1)
 
     market_type = "stock" if _is_stock_ticker(token) else "crypto"
-    console.print(Panel(f"[bold cyan]Kairos Analyze[/bold cyan] — {token} ({market_type})  |  Strategy: {cfg.name}",
-                        style="cyan"))
+    console.print(
+        Panel(
+            f"[bold cyan]Kairos Analyze[/bold cyan] — {token} ({market_type})  |  Strategy: {cfg.name}",
+            style="cyan",
+        )
+    )
 
     with console.status("[bold green]Fetching market data..."):
         provider = YahooFinanceProvider()
@@ -279,12 +325,15 @@ async def _run_analyze(token: str, strategy: str, days: int) -> None:
         risk_result = await risk.process(rctx2)
 
         executor = ExecutorAgent(cfg.agent_config, journal=journal)
-        ectx = AgentContext(input_data={
-            "quant_output": quant_result.output,
-            "risk_output": risk_result.output,
-            "token": token, "mode": "live",
-            "current_price": float(df["close"].iloc[-1]) if not df.empty else 100,
-        })
+        ectx = AgentContext(
+            input_data={
+                "quant_output": quant_result.output,
+                "risk_output": risk_result.output,
+                "token": token,
+                "mode": "live",
+                "current_price": float(df["close"].iloc[-1]) if not df.empty else 100,
+            }
+        )
         executor_result = await executor.process(ectx)
 
     # ── Decision Banner ───────────────────────────────────────────────────
@@ -294,8 +343,7 @@ async def _run_analyze(token: str, strategy: str, days: int) -> None:
     rationale = executor_result.output.get("decision_rationale", "")
 
     decision_panel = Panel.fit(
-        f"[bold {d_color}]{d}[/bold {d_color}]  (confidence: {confidence:.0%})\n"
-        f"[dim]{rationale}[/dim]",
+        f"[bold {d_color}]{d}[/bold {d_color}]  (confidence: {confidence:.0%})\n[dim]{rationale}[/dim]",
         title="Decision",
         border_style=d_color,
     )
@@ -357,16 +405,16 @@ async def _run_analyze(token: str, strategy: str, days: int) -> None:
     col2.add_row(risk_table, stats_table)
     console.print(col2)
 
-    console.print(f"\n[dim]Journal entries: {len(journal.get_all())}  |  "
-                  f"kairos report {token} for detailed report[/dim]")
-    console.print(f"\n[bold green]Analysis complete![/bold green]")
+    console.print(
+        f"\n[dim]Journal entries: {len(journal.get_all())}  |  kairos report {token} for detailed report[/dim]"
+    )
+    console.print("\n[bold green]Analysis complete![/bold green]")
 
 
 @app.command()
 def report(
     token: str = typer.Argument(..., help="Stock ticker or crypto pair"),
-    strategy: str = typer.Option("momentum", "--strategy", "-s",
-                                  help="Strategy name"),
+    strategy: str = typer.Option("momentum", "--strategy", "-s", help="Strategy name"),
     days: int = typer.Option(365, "--days", "-d", help="Days of historical data"),
     output: str = typer.Option("kairos_report.html", "--output", "-o", help="Output HTML file"),
 ):
@@ -383,13 +431,13 @@ def report(
 
 
 async def _run_report(token: str, strategy: str, days: int, output: str) -> None:
-    from kairos.strategies.registry import StrategyRegistry
-    from kairos.data.providers.yahoofinance import YahooFinanceProvider
+    from kairos.agents.base import AgentContext
+    from kairos.agents.executor import ExecutorAgent
     from kairos.agents.quant import QuantAgent
     from kairos.agents.risk import RiskAgent
-    from kairos.agents.executor import ExecutorAgent
-    from kairos.agents.base import AgentContext
+    from kairos.data.providers.yahoofinance import YahooFinanceProvider
     from kairos.reports.html_report import generate_html_report
+    from kairos.strategies.registry import StrategyRegistry
 
     registry = StrategyRegistry()
     cfg = registry.get(strategy)
@@ -408,15 +456,23 @@ async def _run_report(token: str, strategy: str, days: int, output: str) -> None
         ro = rr.output
 
         executor = ExecutorAgent(cfg.agent_config)
-        er = await executor.process(AgentContext(input_data={
-            "quant_output": qo, "risk_output": ro,
-            "token": token, "mode": "live",
-            "current_price": float(df["close"].iloc[-1]) if not df.empty else 100,
-        }))
+        er = await executor.process(
+            AgentContext(
+                input_data={
+                    "quant_output": qo,
+                    "risk_output": ro,
+                    "token": token,
+                    "mode": "live",
+                    "current_price": float(df["close"].iloc[-1]) if not df.empty else 100,
+                }
+            )
+        )
 
     d = er.output
     html = generate_html_report(
-        token=token, market_type=market_type, strategy_name=cfg.name,
+        token=token,
+        market_type=market_type,
+        strategy_name=cfg.name,
         decision=d.get("decision", "HOLD"),
         confidence=d.get("confidence", 0.5),
         rationale=d.get("decision_rationale", ""),
@@ -437,14 +493,13 @@ async def _run_report(token: str, strategy: str, days: int, output: str) -> None
     with open(output, "w", encoding="utf-8") as f:
         f.write(html)
     console.print(f"[green]Report saved to[/green] {output}")
-    console.print(f"[dim]Open in your browser to view the analysis.[/dim]")
+    console.print("[dim]Open in your browser to view the analysis.[/dim]")
 
 
 @app.command()
 def compare(
     token: str = typer.Argument(..., help="Stock ticker or crypto pair"),
-    strategies: str = typer.Option("momentum,mean_reversion", "--strategies",
-                                    help="Comma-separated strategy names"),
+    strategies: str = typer.Option("momentum,mean_reversion", "--strategies", help="Comma-separated strategy names"),
     days: int = typer.Option(365, "--days", "-d", help="Days of data"),
 ):
     """Compare multiple strategies side-by-side for any asset.
@@ -457,10 +512,10 @@ def compare(
 
 
 async def _run_compare(token: str, strategy_names: list[str], days: int) -> None:
-    from kairos.strategies.registry import StrategyRegistry
-    from kairos.data.providers.yahoofinance import YahooFinanceProvider
     from kairos.backtesting.engine import WalkForwardEngine
+    from kairos.data.providers.yahoofinance import YahooFinanceProvider
     from kairos.statistics.bootstrap import BootstrapSignificanceTest
+    from kairos.strategies.registry import StrategyRegistry
 
     registry = StrategyRegistry()
     configs = []
@@ -472,8 +527,7 @@ async def _run_compare(token: str, strategy_names: list[str], days: int) -> None
             raise typer.Exit(code=1)
 
     market_type = "stock" if _is_stock_ticker(token) else "crypto"
-    console.print(Panel(f"[bold cyan]Strategy Comparison[/bold cyan] — {token} ({market_type})",
-                        style="cyan"))
+    console.print(Panel(f"[bold cyan]Strategy Comparison[/bold cyan] — {token} ({market_type})", style="cyan"))
 
     with console.status(f"[bold green]Fetching {token} data..."):
         provider = YahooFinanceProvider()
@@ -489,8 +543,7 @@ async def _run_compare(token: str, strategy_names: list[str], days: int) -> None
     table.add_column("p-value", justify="right")
 
     for cfg in configs:
-        engine = WalkForwardEngine(df, train_size=min(90, len(df) // 3),
-                                    test_size=min(30, len(df) // 6))
+        engine = WalkForwardEngine(df, train_size=min(90, len(df) // 3), test_size=min(30, len(df) // 6))
         result = engine.run(cfg.agent_config)
         agg = result["aggregate"]
         sig = {"p_value": 1.0}
@@ -534,15 +587,13 @@ def leaderboard(
 
 
 async def _run_leaderboard(token: str, days: int) -> None:
-    from kairos.strategies.registry import StrategyRegistry
-    from kairos.strategies.builtin import BUILTIN_STRATEGIES
-    from kairos.data.providers.yahoofinance import YahooFinanceProvider
     from kairos.backtesting.engine import WalkForwardEngine
+    from kairos.data.providers.yahoofinance import YahooFinanceProvider
     from kairos.statistics.bootstrap import BootstrapSignificanceTest
+    from kairos.strategies.builtin import BUILTIN_STRATEGIES
 
     market_type = "stock" if token.upper().isalpha() and len(token) <= 5 else "crypto"
-    console.print(Panel(f"[bold cyan]Strategy Leaderboard[/bold cyan] — {token} ({market_type})",
-                        style="cyan"))
+    console.print(Panel(f"[bold cyan]Strategy Leaderboard[/bold cyan] — {token} ({market_type})", style="cyan"))
 
     with console.status(f"[bold green]Fetching {token} data..."):
         provider = YahooFinanceProvider()
@@ -551,9 +602,8 @@ async def _run_leaderboard(token: str, days: int) -> None:
     results = []
     with console.status("[bold green]Running all strategies...") as status:
         for i, (name, strategy_cls) in enumerate(BUILTIN_STRATEGIES.items()):
-            status.update(f"[bold green]Testing {name} ({i+1}/{len(BUILTIN_STRATEGIES)})")
-            engine = WalkForwardEngine(df, train_size=min(90, len(df) // 3),
-                                        test_size=min(30, len(df) // 6))
+            status.update(f"[bold green]Testing {name} ({i + 1}/{len(BUILTIN_STRATEGIES)})")
+            engine = WalkForwardEngine(df, train_size=min(90, len(df) // 3), test_size=min(30, len(df) // 6))
             result = engine.run({"name": name})
             agg = result["aggregate"]
             sig = {"p_value": 1.0, "is_significant": False}
@@ -564,7 +614,7 @@ async def _run_leaderboard(token: str, days: int) -> None:
 
     results.sort(key=lambda x: x[1]["sharpe_ratio"], reverse=True)
 
-    table = Table(show_header=True, header_style="bold", title=f"Ranked by Sharpe Ratio")
+    table = Table(show_header=True, header_style="bold", title="Ranked by Sharpe Ratio")
     table.add_column("Rank", justify="right", style="dim", width=5)
     table.add_column("Strategy", style="cyan")
     table.add_column("Return", justify="right")
@@ -575,7 +625,7 @@ async def _run_leaderboard(token: str, days: int) -> None:
 
     for rank, (name, agg, sig) in enumerate(results, 1):
         medal = {1: "#1 ", 2: "#2 ", 3: "#3 "}.get(rank, "")
-        sig_text = f"{sig['p_value']:.3f}" if sig['p_value'] < 0.1 else f"{sig['p_value']:.2f}"
+        sig_text = f"{sig['p_value']:.3f}" if sig["p_value"] < 0.1 else f"{sig['p_value']:.2f}"
         if sig.get("is_significant"):
             sig_text += "*"
         table.add_row(
@@ -616,13 +666,13 @@ def paper(
 
 
 async def _run_paper(symbol: str, strategy: str, days: int, qty: float) -> None:
-    from kairos.brokers.alpaca import AlpacaBroker
-    from kairos.strategies.registry import StrategyRegistry
-    from kairos.data.providers.yahoofinance import YahooFinanceProvider
+    from kairos.agents.base import AgentContext
+    from kairos.agents.executor import ExecutorAgent
     from kairos.agents.quant import QuantAgent
     from kairos.agents.risk import RiskAgent
-    from kairos.agents.executor import ExecutorAgent
-    from kairos.agents.base import AgentContext
+    from kairos.brokers.alpaca import AlpacaBroker
+    from kairos.data.providers.yahoofinance import YahooFinanceProvider
+    from kairos.strategies.registry import StrategyRegistry
 
     broker = AlpacaBroker()
     if not broker.is_connected:
@@ -633,9 +683,12 @@ async def _run_paper(symbol: str, strategy: str, days: int, qty: float) -> None:
 
     registry = StrategyRegistry()
     cfg = registry.get(strategy)
-    mode = "paper"
-    console.print(Panel(f"[bold cyan]Paper Trade[/bold cyan] — {symbol} | Strategy: {cfg.name} | Qty: {qty}",
-                        style="cyan"))
+    console.print(
+        Panel(
+            f"[bold cyan]Paper Trade[/bold cyan] — {symbol} | Strategy: {cfg.name} | Qty: {qty}",
+            style="cyan",
+        )
+    )
 
     # Fetch data and run analysis
     with console.status("[bold green]Analyzing market..."):
@@ -646,11 +699,17 @@ async def _run_paper(symbol: str, strategy: str, days: int, qty: float) -> None:
         risk = RiskAgent(cfg.agent_config)
         rr = await risk.process(AgentContext(input_data={"portfolio_value": 10000}))
         executor = ExecutorAgent(cfg.agent_config)
-        er = await executor.process(AgentContext(input_data={
-            "quant_output": qr.output, "risk_output": rr.output,
-            "token": symbol, "mode": "live",
-            "current_price": float(df["close"].iloc[-1]) if not df.empty else 100,
-        }))
+        er = await executor.process(
+            AgentContext(
+                input_data={
+                    "quant_output": qr.output,
+                    "risk_output": rr.output,
+                    "token": symbol,
+                    "mode": "live",
+                    "current_price": float(df["close"].iloc[-1]) if not df.empty else 100,
+                }
+            )
+        )
 
     decision = er.output.get("decision", "HOLD")
     price = float(df["close"].iloc[-1]) if not df.empty else 0
@@ -662,8 +721,10 @@ async def _run_paper(symbol: str, strategy: str, days: int, qty: float) -> None:
             order = await broker.place_order(symbol, side, qty)
             await broker.close()
         if order.status == "filled":
-            console.print(f"[green]Order filled![/green] {order.side} {order.filled_qty} {symbol} "
-                          f"at ${order.filled_avg_price:.2f}")
+            console.print(
+                f"[green]Order filled![/green] {order.side} {order.filled_qty} {symbol} "
+                f"at ${order.filled_avg_price:.2f}"
+            )
         elif order.status == "accepted":
             console.print(f"[yellow]Order accepted, pending fill.[/yellow] ID: {order.id}")
         else:
@@ -703,16 +764,20 @@ async def _run_live(symbol: str, strategy: str, qty: float, confirm: bool) -> No
         console.print("Set ALPACA_API_KEY_ID, ALPACA_SECRET_KEY, and ALPACA_LIVE=true")
         raise typer.Exit(code=1)
 
-    console.print(Panel(f"[bold red]LIVE TRADE[/bold red] — {symbol} x {qty} | Strategy: {strategy}",
-                        style="red"))
+    console.print(
+        Panel(
+            f"[bold red]LIVE TRADE[/bold red] — {symbol} x {qty} | Strategy: {strategy}",
+            style="red",
+        )
+    )
     console.print("[bold red]This is a REAL trade with REAL money![/bold red]")
 
-    from kairos.strategies.registry import StrategyRegistry
-    from kairos.data.providers.yahoofinance import YahooFinanceProvider
+    from kairos.agents.base import AgentContext
+    from kairos.agents.executor import ExecutorAgent
     from kairos.agents.quant import QuantAgent
     from kairos.agents.risk import RiskAgent
-    from kairos.agents.executor import ExecutorAgent
-    from kairos.agents.base import AgentContext
+    from kairos.data.providers.yahoofinance import YahooFinanceProvider
+    from kairos.strategies.registry import StrategyRegistry
 
     registry = StrategyRegistry()
     cfg = registry.get(strategy)
@@ -725,11 +790,17 @@ async def _run_live(symbol: str, strategy: str, qty: float, confirm: bool) -> No
         risk = RiskAgent(cfg.agent_config)
         rr = await risk.process(AgentContext(input_data={"portfolio_value": 10000}))
         executor = ExecutorAgent(cfg.agent_config)
-        er = await executor.process(AgentContext(input_data={
-            "quant_output": qr.output, "risk_output": rr.output,
-            "token": symbol, "mode": "live",
-            "current_price": float(df["close"].iloc[-1]) if not df.empty else 100,
-        }))
+        er = await executor.process(
+            AgentContext(
+                input_data={
+                    "quant_output": qr.output,
+                    "risk_output": rr.output,
+                    "token": symbol,
+                    "mode": "live",
+                    "current_price": float(df["close"].iloc[-1]) if not df.empty else 100,
+                }
+            )
+        )
 
     decision = er.output.get("decision", "HOLD")
     if decision in ("BUY", "SELL"):
@@ -753,6 +824,7 @@ def broker_status():
 
 async def _run_broker_status():
     from kairos.brokers.alpaca import AlpacaBroker
+
     broker = AlpacaBroker()
     if not broker.is_connected:
         console.print("[red]Alpaca not configured.[/red]")
@@ -762,7 +834,7 @@ async def _run_broker_status():
         account = await broker.get_account()
         positions = await broker.get_positions()
         await broker.close()
-        console.print(Panel(f"[bold cyan]Alpaca Broker Status[/bold cyan]", style="cyan"))
+        console.print(Panel("[bold cyan]Alpaca Broker Status[/bold cyan]", style="cyan"))
         console.print(f"  Account: [green]{account['status']}[/green]")
         console.print(f"  Equity: ${account['equity']:,.2f}")
         console.print(f"  Cash: ${account['cash']:,.2f}")

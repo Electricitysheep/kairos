@@ -29,10 +29,15 @@ class YahooFinanceProvider(DataProvider):
             hist = ticker.history(period=f"{days}d")
             if hist.empty:
                 raise DataProviderError(f"No data found for {token}")
-            df = hist.rename(columns={
-                "Open": "open", "High": "high", "Low": "low",
-                "Close": "close", "Volume": "volume",
-            })
+            df = hist.rename(
+                columns={
+                    "Open": "open",
+                    "High": "high",
+                    "Low": "low",
+                    "Close": "close",
+                    "Volume": "volume",
+                }
+            )
             df = df[["open", "high", "low", "close", "volume"]]
             df.index = pd.to_datetime(df.index)
             return df
@@ -55,7 +60,7 @@ class YahooFinanceProvider(DataProvider):
                 "price_change_24h": round(change, 2),
                 "market_cap": info.get("marketCap"),
             }
-        except Exception as e:
+        except Exception:
             return {"price": 0, "volume_24h": 0, "price_change_24h": 0, "market_cap": None}
 
     async def health_check(self) -> bool:

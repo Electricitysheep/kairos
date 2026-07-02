@@ -58,7 +58,7 @@ class TestStrategyRegistry:
 
         registry = StrategyRegistry()
         registry.register_class("custom", CustomStrat, description="Custom test")
-        assert "custom" in registry.list()
+        assert "custom" in registry.names()
         cls = registry.get_class("custom")
         assert cls is CustomStrat
 

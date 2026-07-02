@@ -51,7 +51,7 @@ def main():
         description="Dual moving average crossover strategy",
         agent_config={"fast_period": 10, "slow_period": 30},
     )
-    print(f"Registered strategies: {registry.list()}")
+    print(f"Registered strategies: {registry.names()}")
 
     # 2. Use it like any built-in strategy
     cfg = registry.get("dual_ma")

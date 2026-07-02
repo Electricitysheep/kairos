@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-
 from kairos.agents.base import AgentBase, AgentContext, AgentResult
 from kairos.data.mock import MockDataProvider
 
@@ -36,8 +34,10 @@ class ResearchAgent(AgentBase):
         else:
             return AgentResult(
                 agent_name=self.name,
-                output={"error": "Live mode requires a DataProvider. "
-                        "Pass data_provider to ResearchAgent or use mode='demo'."},
+                output={
+                    "error": "Live mode requires a DataProvider. "
+                    "Pass data_provider to ResearchAgent or use mode='demo'."
+                },
                 confidence=0.0,
                 reasoning="Live mode attempted without DataProvider.",
                 metadata={"mode": mode, "token": token},

@@ -8,6 +8,7 @@ from dataclasses import dataclass
 @dataclass
 class WindowIndices:
     """Indices for a single walk-forward window."""
+
     name: str
     train_start: int
     train_end: int
@@ -48,10 +49,7 @@ class WalkForwardSplitter:
             raise ValueError(f"mode must be one of {self.VALID_MODES}, got {self.mode}")
         min_required = self.train_size + self.embargo + self.test_size
         if self.n_samples < min_required:
-            raise ValueError(
-                f"n_samples ({self.n_samples}) < train_size + embargo + test_size "
-                f"({min_required})"
-            )
+            raise ValueError(f"n_samples ({self.n_samples}) < train_size + embargo + test_size ({min_required})")
 
     def split(self) -> list[WindowIndices]:
         windows: list[WindowIndices] = []
@@ -66,13 +64,15 @@ class WalkForwardSplitter:
             if test_end >= self.n_samples:
                 break
 
-            windows.append(WindowIndices(
-                name=f"window_{i}",
-                train_start=start if self.mode == "rolling" else 0,
-                train_end=train_end,
-                test_start=test_start,
-                test_end=test_end,
-            ))
+            windows.append(
+                WindowIndices(
+                    name=f"window_{i}",
+                    train_start=start if self.mode == "rolling" else 0,
+                    train_end=train_end,
+                    test_start=test_start,
+                    test_end=test_end,
+                )
+            )
 
             start += self.step_size
             i += 1

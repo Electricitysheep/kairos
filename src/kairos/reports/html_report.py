@@ -28,7 +28,10 @@ TEMPLATE = """<!DOCTYPE html>
   .decision-banner .rationale {{ color: #8b949e; margin-top: 8px; }}
   .grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }}
   .card {{ background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; }}
-  .card h3 {{ font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: #8b949e; margin-bottom: 12px; }}
+  .card h3 {{
+    font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;
+    color: #8b949e; margin-bottom: 12px;
+  }}
   .metric {{ display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #21262d; }}
   .metric:last-child {{ border-bottom: none; }}
   .metric .label {{ color: #8b949e; }}
@@ -128,7 +131,10 @@ def generate_html_report(
             name = at.get("agent_name", "?").title()
             conf = at.get("confidence", 0)
             reasoning = at.get("reasoning", "")[:80]
-            agent_html += f'<div class="metric"><span class="label">{name}</span><span class="value">{conf:.0%} — {reasoning}</span></div>\n'
+            agent_html += (
+                f'<div class="metric"><span class="label">{name}</span>'
+                f'<span class="value">{conf:.0%} — {reasoning}</span></div>\n'
+            )
     else:
         agent_html = '<div class="metric"><span class="label">Research → Quant → Risk → Executor</span></div>'
 

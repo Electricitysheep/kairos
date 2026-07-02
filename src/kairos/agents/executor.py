@@ -29,7 +29,6 @@ class ExecutorAgent(AgentBase):
         risk_output = input_data.get("risk_output", {})
         research_output = input_data.get("research_output", {})
         token = input_data.get("token", "SOL/USDT")
-        mode = input_data.get("mode", "demo")
 
         # Get thresholds from config
         buy_threshold = self._config.get("buy_threshold", 60)
@@ -74,11 +73,16 @@ class ExecutorAgent(AgentBase):
                 if decision == "SELL":
                     decision_rationale = f"Composite score {composite_score:.1f} below sell threshold {sell_threshold}"
                 else:
-                    decision_rationale = f"Composite score {composite_score:.1f} below sell threshold {sell_threshold} - holding (sell disabled)"
+                    decision_rationale = (
+                        f"Composite score {composite_score:.1f} below sell threshold "
+                        f"{sell_threshold} - holding (sell disabled)"
+                    )
             else:
                 decision = "HOLD"
                 confidence = 0.5
-                decision_rationale = f"Composite score {composite_score:.1f} within neutral range [{sell_threshold}, {buy_threshold}]"
+                decision_rationale = (
+                    f"Composite score {composite_score:.1f} within neutral range [{sell_threshold}, {buy_threshold}]"
+                )
 
         # Position Sizing
         # Use kelly_position if available, else max_position

@@ -10,7 +10,7 @@ from kairos.strategies.registry import StrategyRegistry, StrategyConfig
 class TestStrategyRegistry:
     def test_registry_has_builtins(self):
         r = StrategyRegistry()
-        names = r.list()
+        names = r.names()
         assert "momentum" in names
         assert "mean_reversion" in names
         assert "conservative" in names
@@ -34,7 +34,7 @@ class TestStrategyRegistry:
             agent_config={"buy_threshold": 50, "sell_threshold": 50},
         )
         r.register(custom)
-        assert "custom_test" in r.list()
+        assert "custom_test" in r.names()
         assert r.get("custom_test").name == "custom_test"
 
     def test_get_all_returns_all(self):

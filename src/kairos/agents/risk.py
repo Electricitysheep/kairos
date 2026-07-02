@@ -27,7 +27,6 @@ class RiskAgent(AgentBase):
         avg_loss = input_data.get("avg_loss", 0.03)
         max_position_pct = config.get("max_position_pct", 0.1)
         circuit_breaker_active = input_data.get("circuit_breaker", False)
-        losses_in_row = input_data.get("losses_in_row", 0)
 
         # 1. Value at Risk (VaR)
         if returns is not None and len(returns) > 0:

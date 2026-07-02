@@ -7,15 +7,15 @@ from typing import TYPE_CHECKING, Callable
 
 import pandas as pd
 
-from kairos.backtesting.splitter import WalkForwardSplitter, WindowIndices
-from kairos.backtesting.portfolio import SimulatedPortfolio
 from kairos.backtesting.metrics import PerformanceMetrics
+from kairos.backtesting.portfolio import SimulatedPortfolio
+from kairos.backtesting.splitter import WalkForwardSplitter, WindowIndices
 from kairos.indicators.ta import TAAnalyzer
 
 if TYPE_CHECKING:
+    from kairos.agents.executor import ExecutorAgent
     from kairos.agents.quant import QuantAgent
     from kairos.agents.risk import RiskAgent
-    from kairos.agents.executor import ExecutorAgent
 
 
 class WalkForwardEngine:
@@ -60,6 +60,7 @@ class WalkForwardEngine:
     def quant_agent(self):
         if self._quant_agent is None and self._has_any_agent():
             from kairos.agents.quant import QuantAgent
+
             self._quant_agent = QuantAgent(self.agent_config)
         return self._quant_agent
 
@@ -67,6 +68,7 @@ class WalkForwardEngine:
     def risk_agent(self):
         if self._risk_agent is None and self._has_any_agent():
             from kairos.agents.risk import RiskAgent
+
             self._risk_agent = RiskAgent(self.agent_config)
         return self._risk_agent
 
@@ -74,6 +76,7 @@ class WalkForwardEngine:
     def executor_agent(self):
         if self._executor_agent is None and self._has_any_agent():
             from kairos.agents.executor import ExecutorAgent
+
             self._executor_agent = ExecutorAgent(self.agent_config)
         return self._executor_agent
 
@@ -82,7 +85,7 @@ class WalkForwardEngine:
 
     def _precompute_indicators(self) -> pd.DataFrame:
         """Compute all TA indicators once across the full dataset.
-        
+
         Returns a DataFrame with indicator columns aligned to the original data index.
         This avoids recomputing indicators for every bar in every window (100x+ faster).
         """
@@ -117,10 +120,13 @@ class WalkForwardEngine:
         score += 20 if (not pd.isna(close) and not pd.isna(ema21) and close > ema21) else 0
         return max(0.0, min(100.0, score))
 
-    def run(self, strategy_config: dict | None = None,
-            progress_callback: Callable[[int, int], None] | None = None) -> dict:
+    def run(
+        self,
+        strategy_config: dict | None = None,
+        progress_callback: Callable[[int, int], None] | None = None,
+    ) -> dict:
         """Run the walk-forward backtest with optional progress reporting.
-        
+
         Args:
             strategy_config: Overrides agent_config for this run.
             progress_callback: Called as progress_callback(current, total) after each window.
@@ -136,7 +142,7 @@ class WalkForwardEngine:
         )
         windows = splitter.split()
         if self.max_windows is not None:
-            windows = windows[:self.max_windows]
+            windows = windows[: self.max_windows]
         all_returns: list[float] = []
         self._precomputed = self._precompute_indicators()
 
@@ -150,7 +156,6 @@ class WalkForwardEngine:
 
         # Benchmark: buy-and-hold for the entire period
         benchmark_returns: list[float] = []
-        first_close = float(self.data["close"].iloc[0]) if len(self.data) > 0 else 1.0
         for i in range(1, len(self.data)):
             prev = float(self.data["close"].iloc[i - 1])
             curr = float(self.data["close"].iloc[i])
@@ -170,9 +175,9 @@ class WalkForwardEngine:
         portfolio = SimulatedPortfolio(initial_cash=self.initial_cash)
         window_returns: list[float] = []
 
-        for idx, (_, row) in enumerate(self.data.iloc[window.test_start:window.test_end].iterrows()):
+        for idx, (_, row) in enumerate(self.data.iloc[window.test_start : window.test_end].iterrows()):
             abs_idx = window.test_start + idx
-            current_data = self.data.iloc[:abs_idx + 1]
+            current_data = self.data.iloc[: abs_idx + 1]
 
             if self._has_any_agent() and self._quant_agent and self._executor_agent:
                 decision = self._get_decision_from_agents(current_data, float(row["close"]))
@@ -214,18 +219,28 @@ class WalkForwardEngine:
             qctx = AgentContext(input_data={"ohlcv": current_data})
             qr = await self.quant_agent.process(qctx)
             from kairos.data.mock import MockDataProvider
+
             mock = MockDataProvider.generate_research_packet("backtest")
-            rctx = AgentContext(input_data={
-                "returns": None, "portfolio_value": self.initial_cash,
-                "win_rate": 0.5, "avg_win": 0.05, "avg_loss": 0.03,
-            })
+            rctx = AgentContext(
+                input_data={
+                    "returns": None,
+                    "portfolio_value": self.initial_cash,
+                    "win_rate": 0.5,
+                    "avg_win": 0.05,
+                    "avg_loss": 0.03,
+                }
+            )
             rr = await self.risk_agent.process(rctx) if self._risk_agent else None
-            ectx = AgentContext(input_data={
-                "quant_output": qr.output,
-                "risk_output": rr.output if rr else {"is_safe": True, "circuit_breaker_active": False},
-                "research_output": mock, "token": "BACKTEST",
-                "mode": "backtest", "current_price": price,
-            })
+            ectx = AgentContext(
+                input_data={
+                    "quant_output": qr.output,
+                    "risk_output": rr.output if rr else {"is_safe": True, "circuit_breaker_active": False},
+                    "research_output": mock,
+                    "token": "BACKTEST",
+                    "mode": "backtest",
+                    "current_price": price,
+                }
+            )
             er = await self.executor_agent.process(ectx)
             return er.output.get("decision", "HOLD")
 

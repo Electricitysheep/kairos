@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-import pandas as pd
-from typing import Optional
 
 
 @dataclass
 class Trade:
     """A single simulated trade."""
+
     timestamp: str
     action: str  # "BUY" or "SELL"
     price: float
@@ -21,6 +20,7 @@ class Trade:
 @dataclass
 class PortfolioSnapshot:
     """Portfolio state at a point in time."""
+
     timestamp: str
     cash: float
     shares: float
@@ -53,13 +53,15 @@ class SimulatedPortfolio:
         """Update current price and record snapshot."""
         self._current_price = price
         self._timestamp = timestamp if timestamp is not None else ""
-        self.snapshots.append(PortfolioSnapshot(
-            timestamp=self._timestamp,
-            cash=self.cash,
-            shares=self.shares,
-            position_value=self.position_value,
-            total_value=self.total_value,
-        ))
+        self.snapshots.append(
+            PortfolioSnapshot(
+                timestamp=self._timestamp,
+                cash=self.cash,
+                shares=self.shares,
+                position_value=self.position_value,
+                total_value=self.total_value,
+            )
+        )
 
     def execute_trade(
         self,
@@ -94,14 +96,16 @@ class SimulatedPortfolio:
             cost = shares_traded * price
             self.shares += shares_traded
             self.cash -= cost
-            self.trades.append(Trade(
-                timestamp=ts,
-                action="BUY",
-                price=price,
-                shares=shares_traded,
-                value=cost,
-                reason=reason,
-            ))
+            self.trades.append(
+                Trade(
+                    timestamp=ts,
+                    action="BUY",
+                    price=price,
+                    shares=shares_traded,
+                    value=cost,
+                    reason=reason,
+                )
+            )
             return shares_traded
 
         elif action_upper == "SELL":
@@ -111,14 +115,16 @@ class SimulatedPortfolio:
                 actual_value = shares_to_sell * price
                 self.cash += actual_value
                 self.shares = max(0.0, self.shares - shares_to_sell)
-                self.trades.append(Trade(
-                    timestamp=ts,
-                    action="SELL",
-                    price=price,
-                    shares=shares_to_sell,
-                    value=actual_value,
-                    reason=reason,
-                ))
+                self.trades.append(
+                    Trade(
+                        timestamp=ts,
+                        action="SELL",
+                        price=price,
+                        shares=shares_to_sell,
+                        value=actual_value,
+                        reason=reason,
+                    )
+                )
             return 0.0
 
         # HOLD or unknown action
