@@ -5,7 +5,37 @@ description = "AI Trading Agents, Fully Transparent & Verifiable — Research-gr
 authors = ["Zhou Yuchen"]
 license = "MIT"
 readme = "README.md"
+homepage = "https://github.com/Electricitysheep/kairos"
+repository = "https://github.com/Electricitysheep/kairos"
+documentation = "https://github.com/Electricitysheep/kairos#readme"
+keywords = [
+    "trading",
+    "quant",
+    "backtesting",
+    "ai-agents",
+    "algorithmic-trading",
+    "crypto",
+    "llm",
+    "fintech",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Topic :: Office/Business :: Financial :: Investment",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+    "Typing :: Typed",
+]
 packages = [{include = "kairos", from = "src"}]
+
+[tool.poetry.urls]
+Changelog = "https://github.com/Electricitysheep/kairos/blob/master/CHANGELOG.md"
+"Bug Tracker" = "https://github.com/Electricitysheep/kairos/issues"
 
 [tool.poetry.dependencies]
 python = ">=3.10"
@@ -26,9 +56,6 @@ pytest-cov = ">=4.0"
 ruff = ">=0.1"
 mypy = ">=1.0"
 pre-commit = ">=3.0"
-
-[tool.poetry.extras]
-ta = ["pandas-ta"]
 
 [build-system]
 requires = ["poetry-core"]
