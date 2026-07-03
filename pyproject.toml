@@ -83,10 +83,6 @@ ignore_missing_imports = true
 omit = [
     "*/dashboard/*",
     "*/cli/*",
-    "*/__main__.py",
-    "*/reports/html_report.py",
-    "*/data/providers/yahoofinance.py",
-    "*/data/providers/fred.py",
 ]
 
 [tool.coverage.report]
