@@ -7,6 +7,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- Data caching layer: an in-memory `TTLCache` plus a `CachedDataProvider`
+  wrapper that memoizes `fetch_price_data` / `fetch_market_data` for a TTL —
+  implements the previously-declared-but-unused `cache_ttl_seconds` setting.
 - Top-level lazy exports: `from kairos import Orchestrator, Strategy, Signal, StrategyContext`
   now work without importing pandas/agents up front (keeps `import kairos` fast).
 - `py.typed` marker so downstream users get Kairos' type hints.
