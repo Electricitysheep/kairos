@@ -256,18 +256,25 @@ def analyze(
         help="Strategy name (momentum, mean_reversion, conservative)",
     ),
     days: int = typer.Option(365, "--days", "-d", help="Days of historical data"),
+    webhook: str = typer.Option(
+        None,
+        "--webhook",
+        help="POST the decision to a webhook URL (Slack/Discord/Telegram/custom)",
+    ),
 ):
-    """Analyze a stock or crypto asset using the full AI agent pipeline.
+    """Analyze a stock or crypto asset through the rule-based agent pipeline.
 
-    Fetches real market data via Yahoo Finance, runs the 4-agent pipeline
-    (Research → Quant → Risk → Executor), and shows the full analysis.
+    Fetches real market data via Yahoo Finance, runs the Quant → Risk → Executor
+    agents, and shows the full analysis. Pass --webhook to also push the decision
+    to Slack/Discord/Telegram/a custom endpoint.
 
     Examples:
         kairos analyze AAPL
         kairos analyze BTC-USD --days 90
         kairos analyze SPY --strategy conservative
+        kairos analyze AAPL --webhook https://hooks.slack.com/services/...
     """
-    asyncio.run(_run_analyze(token, strategy, days))
+    asyncio.run(_run_analyze(token, strategy, days, webhook))
 
 
 def _sparkline(data: list[float], width: int = 40) -> str:
@@ -285,7 +292,7 @@ def _sparkline(data: list[float], width: int = 40) -> str:
     return "".join(bars[i] for i in indices)
 
 
-async def _run_analyze(token: str, strategy: str, days: int) -> None:
+async def _run_analyze(token: str, strategy: str, days: int, webhook: str | None = None) -> None:
     from kairos.agents.base import AgentContext
     from kairos.agents.executor import ExecutorAgent
     from kairos.agents.quant import QuantAgent
@@ -348,6 +355,16 @@ async def _run_analyze(token: str, strategy: str, days: int) -> None:
         border_style=d_color,
     )
     console.print(decision_panel)
+
+    if webhook:
+        from kairos.notifications import TradeAlert, WebhookNotifier
+
+        alert = TradeAlert(token=token, decision=d, confidence=confidence, reason=rationale)
+        sent = await WebhookNotifier(webhook).send(alert)
+        if sent:
+            console.print("[dim]✓ Decision pushed to webhook[/dim]")
+        else:
+            console.print("[yellow]⚠ Webhook returned a non-2xx status[/yellow]")
 
     # ── Price + Indicators side by side ──────────────────────────────────
     closes = df["close"].tolist()

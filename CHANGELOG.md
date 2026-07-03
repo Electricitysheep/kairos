@@ -10,6 +10,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Notifications module: a `Notifier` interface with `ConsoleNotifier`,
   `WebhookNotifier` (Slack / Discord / Telegram / custom), and `MultiNotifier`
   fan-out, plus a `TradeAlert` payload — deliver trading signals anywhere.
+- `kairos analyze --webhook <url>` pushes the decision through the notifications
+  module (Slack / Discord / Telegram / custom endpoint).
 - Data caching layer: an in-memory `TTLCache` plus a `CachedDataProvider`
   wrapper that memoizes `fetch_price_data` / `fetch_market_data` for a TTL —
   implements the previously-declared-but-unused `cache_ttl_seconds` setting.

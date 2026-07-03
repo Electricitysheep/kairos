@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import re
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from typer.testing import CliRunner
 
 from kairos import __version__
 from kairos.cli.app import app
+from kairos.data.mock import MockDataProvider
 
 runner = CliRunner()
 
@@ -69,3 +71,42 @@ def test_backtest_help():
 def test_backtest_unknown_strategy():
     result = runner.invoke(app, ["backtest", "--strategy", "nonexistent"])
     assert result.exit_code != 0
+
+
+def test_analyze_help_lists_webhook():
+    result = runner.invoke(app, ["analyze", "--help"])
+    assert result.exit_code == 0
+    assert "--webhook" in _plain(result)
+
+
+def test_analyze_webhook_pushes_decision():
+    """--webhook should deliver the decision as a TradeAlert."""
+    df = MockDataProvider.generate_price_data(days=60, seed=1)
+    fake_provider = MagicMock()
+    fake_provider.fetch_price_data = AsyncMock(return_value=df)
+
+    sent = []
+
+    class _FakeNotifier:
+        def __init__(self, url):
+            self.url = url
+
+        async def send(self, alert):
+            sent.append((self.url, alert))
+            return True
+
+    with (
+        patch(
+            "kairos.data.providers.yahoofinance.YahooFinanceProvider",
+            return_value=fake_provider,
+        ),
+        patch("kairos.notifications.WebhookNotifier", _FakeNotifier),
+    ):
+        result = runner.invoke(app, ["analyze", "AAPL", "--webhook", "https://hook.test/x"])
+
+    assert result.exit_code == 0, result.stdout
+    assert len(sent) == 1
+    url, alert = sent[0]
+    assert url == "https://hook.test/x"
+    assert alert.token == "AAPL"
+    assert alert.decision in {"BUY", "SELL", "HOLD"}
