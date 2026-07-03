@@ -6,6 +6,7 @@
 
 *The first open-source framework for building transparent, backtestable, statistically-validated AI trading agents.*
 
+[![PyPI](https://img.shields.io/pypi/v/kairos-agent?style=flat-square)](https://pypi.org/project/kairos-agent/)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue?style=flat-square)](https://www.python.org/downloads/)
 [![CI](https://img.shields.io/github/actions/workflow/status/Electricitysheep/kairos/ci.yml?branch=master&style=flat-square)](https://github.com/Electricitysheep/kairos/actions)
 [![License: MIT](https://img.shields.io/github/license/Electricitysheep/kairos?style=flat-square)](LICENSE)

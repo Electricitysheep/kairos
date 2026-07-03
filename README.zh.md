@@ -6,6 +6,7 @@
 
 *首个用于构建「透明、可回测、经统计验证」的 AI 交易 Agent 的开源框架。*
 
+[![PyPI](https://img.shields.io/pypi/v/kairos-agent?style=flat-square)](https://pypi.org/project/kairos-agent/)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue?style=flat-square)](https://www.python.org/downloads/)
 [![CI](https://img.shields.io/github/actions/workflow/status/Electricitysheep/kairos/ci.yml?branch=master&style=flat-square)](https://github.com/Electricitysheep/kairos/actions)
 [![License: MIT](https://img.shields.io/github/license/Electricitysheep/kairos?style=flat-square)](LICENSE)
