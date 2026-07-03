@@ -76,13 +76,11 @@ python_version = "3.10"
 ignore_missing_imports = true
 
 [tool.coverage.run]
-# Presentation, entrypoint, and live-IO layers are exercised via manual /
-# integration testing rather than unit tests, so they are excluded from the
-# unit-coverage gate. Core logic (agents, backtesting, strategies, statistics,
-# indicators, data mock/base) remains fully measured.
+# Only the Streamlit dashboard (a UI layer exercised manually rather than via
+# unit tests) is excluded from the coverage gate. Everything else — including
+# the CLI, data providers, and report generation — is measured.
 omit = [
     "*/dashboard/*",
-    "*/cli/*",
 ]
 
 [tool.coverage.report]

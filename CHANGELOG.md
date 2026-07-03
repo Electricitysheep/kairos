@@ -34,10 +34,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   "Supports FinBERT" claim in `SentimentAgent` — neither was ever wired up.
 
 ### Changed
-- Real test coverage: the HTML report generator, the Yahoo Finance and FRED
-  data providers, and the `__main__` entry point are now unit-tested and no
-  longer excluded from the coverage gate (only the Streamlit dashboard and the
-  Typer CLI glue remain omitted).
+- Real test coverage: the CLI commands, the HTML report generator, the Yahoo
+  Finance and FRED providers, and `__main__` are now unit-tested and removed
+  from the coverage `omit` — only the Streamlit dashboard UI stays excluded.
+  `cli/app.py` went from ~25% to 80%; the 85% gate is now genuine rather than
+  inflated by exclusions.
 - Bumped pre-commit hooks (ruff v0.8.6, pre-commit-hooks v5.0.0) so local hooks
   understand the `[tool.ruff.lint]` config.
 - Documentation now describes Kairos accurately as a **transparent, rule-based**

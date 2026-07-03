@@ -110,3 +110,70 @@ def test_analyze_webhook_pushes_decision():
     assert url == "https://hook.test/x"
     assert alert.token == "AAPL"
     assert alert.decision in {"BUY", "SELL", "HOLD"}
+
+
+def _patch_yahoo(days: int = 150):
+    """Patch YahooFinanceProvider so CLI commands run offline on mock data."""
+    df = MockDataProvider.generate_price_data(days=days, seed=1)
+    fake = MagicMock()
+    fake.fetch_price_data = AsyncMock(return_value=df)
+    return patch(
+        "kairos.data.providers.yahoofinance.YahooFinanceProvider",
+        return_value=fake,
+    )
+
+
+def test_backtest_runs_on_mock_data():
+    with _patch_yahoo():
+        result = runner.invoke(app, ["backtest", "--token", "AAPL", "--max-windows", "2"])
+    assert result.exit_code == 0, result.stdout
+
+
+def test_report_writes_html_file(tmp_path):
+    out = tmp_path / "report.html"
+    with _patch_yahoo():
+        result = runner.invoke(app, ["report", "AAPL", "-o", str(out)])
+    assert result.exit_code == 0, result.stdout
+    assert out.exists()
+    assert "<!DOCTYPE html>" in out.read_text(encoding="utf-8")
+
+
+def test_compare_runs():
+    with _patch_yahoo():
+        result = runner.invoke(
+            app, ["compare", "AAPL", "--strategies", "momentum,rsi", "--days", "150"]
+        )
+    assert result.exit_code == 0, result.stdout
+
+
+def test_compare_unknown_strategy_exits():
+    with _patch_yahoo():
+        result = runner.invoke(app, ["compare", "AAPL", "--strategies", "nope"])
+    assert result.exit_code != 0
+
+
+def test_leaderboard_runs():
+    with _patch_yahoo():
+        result = runner.invoke(app, ["leaderboard", "AAPL", "--days", "150"])
+    assert result.exit_code == 0, result.stdout
+
+
+def test_dashboard_launches_streamlit():
+    with patch("subprocess.run") as mock_run:
+        result = runner.invoke(app, ["dashboard"])
+    assert result.exit_code == 0
+    mock_run.assert_called_once()
+
+
+def test_paper_without_credentials_is_handled():
+    # No ALPACA_* env vars in CI → broker is not connected; must not crash.
+    with _patch_yahoo():
+        result = runner.invoke(app, ["paper", "AAPL"])
+    assert result.exit_code in (0, 1)
+    assert result.exception is None or isinstance(result.exception, SystemExit)
+
+
+def test_broker_status_runs():
+    result = runner.invoke(app, ["broker-status"])
+    assert result.exit_code in (0, 1)
+    assert result.exception is None or isinstance(result.exception, SystemExit)
