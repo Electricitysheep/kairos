@@ -7,6 +7,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- Docker hardening: the image now binds Streamlit to `0.0.0.0` (dashboard is
+  actually reachable), runs as a non-root user, installs non-editable, and is
+  slimmer via a `.dockerignore`. README documents `docker build` / `docker run`.
+- `.github/dependabot.yml` — weekly pip + github-actions dependency updates.
+- `.gitattributes` normalizing line endings to LF across the repo.
 - Notifications module: a `Notifier` interface with `ConsoleNotifier`,
   `WebhookNotifier` (Slack / Discord / Telegram / custom), and `MultiNotifier`
   fan-out, plus a `TradeAlert` payload — deliver trading signals anywhere.
@@ -29,6 +34,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   "Supports FinBERT" claim in `SentimentAgent` — neither was ever wired up.
 
 ### Changed
+- Bumped pre-commit hooks (ruff v0.8.6, pre-commit-hooks v5.0.0) so local hooks
+  understand the `[tool.ruff.lint]` config.
 - Documentation now describes Kairos accurately as a **transparent, rule-based**
   quant agent framework: the 5 agents are deterministic (no LLM), and the
   decision trace records each agent's explicit rule-based rationale.

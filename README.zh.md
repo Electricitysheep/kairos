@@ -62,6 +62,14 @@ kairos analyze AAPL  # 实时股票 / 加密货币分析
 | `kairos live AAPL --qty 10` | Alpaca 实盘交易 |
 | `kairos dashboard` | 交互式 Dashboard |
 
+## 用 Docker 运行
+
+```bash
+docker build -t kairos .
+docker run -p 8501:8501 kairos       # dashboard 访问 http://localhost:8501
+docker run kairos analyze AAPL       # 或运行任意 CLI 命令
+```
+
 ## 架构
 
 五个专职 Agent 由 `Orchestrator` 编排为顺序流水线，每个 Agent 输出结构化结果，完整链路写入决策日志。

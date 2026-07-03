@@ -1,0 +1,22 @@
+# Normalize line endings on checkin; check out platform-native.
+* text=auto
+
+# Force LF for source and config so tooling is consistent cross-platform.
+*.py text eol=lf
+*.md text eol=lf
+*.toml text eol=lf
+*.cfg text eol=lf
+*.ini text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.sh text eol=lf
+*.txt text eol=lf
+Dockerfile text eol=lf
+
+# Binary assets.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary

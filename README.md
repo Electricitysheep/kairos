@@ -62,6 +62,14 @@ That's it — `kairos demo` runs the full 5-agent pipeline on sample data with n
 | `kairos live AAPL --qty 10` | Live trading via Alpaca |
 | `kairos dashboard` | Launch the interactive dashboard |
 
+## Run with Docker
+
+```bash
+docker build -t kairos .
+docker run -p 8501:8501 kairos       # dashboard at http://localhost:8501
+docker run kairos analyze AAPL       # or run any CLI command
+```
+
 ## Architecture
 
 Kairos runs five specialized agents as a sequential pipeline, coordinated by an `Orchestrator`. Each agent emits a structured result, and the full trace is persisted to a decision journal.
