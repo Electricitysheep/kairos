@@ -50,7 +50,7 @@ class TestLoadConfig:
 
     def test_load_config_no_env_sets_demo_mode_true(self, monkeypatch):
         """Without any API keys, load_config should set demo_mode=True."""
-        for key in ["BIRDEYE_API_KEY", "HELIUS_API_KEY", "COINGECKO_API_KEY", "OPENAI_API_KEY"]:
+        for key in ["BIRDEYE_API_KEY", "HELIUS_API_KEY", "COINGECKO_API_KEY"]:
             monkeypatch.delenv(key, raising=False)
         config = load_config()
         assert config.demo_mode is True
@@ -79,13 +79,13 @@ class TestLoadConfig:
         """load_config should load from a specific path when given."""
         monkeypatch.delenv("BIRDEYE_API_KEY", raising=False)
         with tempfile.NamedTemporaryFile(mode="w", suffix=".env", delete=False) as f:
-            f.write("OPENAI_API_KEY=test_openai_key\n")
+            f.write("COINGECKO_API_KEY=test_coingecko_key\n")
             env_path = f.name
 
         try:
             config = load_config(path=env_path)
-            assert "OPENAI_API_KEY" in config.api_keys
-            assert config.api_keys["OPENAI_API_KEY"] == "test_openai_key"
+            assert "COINGECKO_API_KEY" in config.api_keys
+            assert config.api_keys["COINGECKO_API_KEY"] == "test_coingecko_key"
         finally:
             os.unlink(env_path)
 

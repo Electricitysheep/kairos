@@ -129,14 +129,12 @@ def _score_headline(text: str) -> tuple[float, str]:
 class SentimentAgent(AgentBase):
     """Agent that analyzes news sentiment for a trading asset.
 
-    Fetches recent headlines and computes a sentiment score.
-    Uses keyword-based analysis (no external API needed).
-    Supports FinBERT for more accurate analysis (optional).
+    Fetches recent headlines and computes a sentiment score using a
+    keyword-based lexicon (deterministic, no external API needed).
     """
 
-    def __init__(self, config=None, use_finbert: bool = False):
+    def __init__(self, config=None):
         super().__init__(config)
-        self._use_finbert = use_finbert
 
     @property
     def name(self) -> str:
@@ -165,8 +163,12 @@ class SentimentAgent(AgentBase):
 
     def _mock_sentiment(self, token: str) -> AgentResult:
         import random
+        import zlib
 
-        rng = random.Random(hash(token) % (2**32))
+        # Deterministic per-token seed. Python's built-in hash() is salted per
+        # process (PYTHONHASHSEED), which would make demo sentiment vary between
+        # runs and contradict the project's reproducibility guarantee.
+        rng = random.Random(zlib.crc32(token.encode("utf-8")))
         sentiments = ["bullish", "bearish", "neutral"]
         weights = [0.4, 0.3, 0.3]
         sentiment = rng.choices(sentiments, weights=weights, k=1)[0]

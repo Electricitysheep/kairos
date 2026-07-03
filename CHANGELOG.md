@@ -17,8 +17,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Removed
 - Unused `ta` extra that referenced an undeclared `pandas-ta` dependency
   (indicators are computed by the built-in `kairos.indicators.ta` module).
+- Dead `OPENAI_API_KEY` collection in config and the unused `use_finbert` flag /
+  "Supports FinBERT" claim in `SentimentAgent` — neither was ever wired up.
 
 ### Changed
+- Documentation now describes Kairos accurately as a **transparent, rule-based**
+  quant agent framework: the 5 agents are deterministic (no LLM), and the
+  decision trace records each agent's explicit rule-based rationale.
 - `resolve_journal_path()` now honors `KairosConfig.journal_path` instead of
   always returning `~/.kairos/journal.json`.
 - Vectorized the buy-and-hold benchmark computation in the walk-forward engine
@@ -26,6 +31,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Bumped ruff line-length to 120 and applied `ruff format` across the codebase.
 
 ### Fixed
+- Demo sentiment is now reproducible across processes (was seeded from Python's
+  per-process-salted builtin `hash()`, contradicting the reproducibility goal).
 - CI now runs on the `master` branch (previously only `main`, so it never ran).
 - Resolved all ruff lint and mypy type errors; renamed `StrategyRegistry.list()`
   to `names()` to stop shadowing the builtin `list`.

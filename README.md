@@ -19,9 +19,9 @@
 
 ## Why Kairos?
 
-Most AI trading agents are **black boxes** — they hand you a signal with no way to check the reasoning. Kairos is built on the opposite bet: **every decision is transparent and verifiable.**
+Most AI trading tools are **black boxes** — they hand you a signal with no way to check the logic. Kairos takes the opposite bet: **every decision is deterministic, transparent, and verifiable.**
 
-- 🔍 **Full reasoning trace** — see exactly *why* each of the 5 agents made its call.
+- 🔍 **Fully auditable decisions** — each of the 5 agents is rule-based (no LLM, no hidden model) and records the exact rationale behind every call.
 - 📈 **Walk-Forward backtesting** — academic-grade rolling-window validation, not overfit curve-fitting.
 - 🧪 **Bootstrap statistics** — p-values and confidence intervals so you know if an edge is real or noise.
 
@@ -39,7 +39,7 @@ That's it — `kairos demo` runs the full 5-agent pipeline on sample data with n
 
 ## Features
 
-- **5 AI Agents** — Research → Quant → Risk → Sentiment → Executor, run as a coordinated pipeline
+- **5 specialized agents** — Research → Quant → Risk → Sentiment → Executor, run as a coordinated pipeline
 - **Walk-Forward Backtesting** — rolling-window out-of-sample validation
 - **Bootstrap Statistics** — p-values and confidence intervals on strategy returns
 - **Strategy Plugin System** — write custom strategies as plain Python classes
@@ -71,7 +71,7 @@ Research ─▶ Quant ─▶ Risk ─▶ Sentiment ─▶ Executor
    │          │        │          │           │
    └──────────┴────────┴──────────┴───────────┘
                        ▼
-             Decision Journal (full reasoning trace)
+             Decision Journal (full decision trace)
 ```
 
 ```

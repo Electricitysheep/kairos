@@ -45,7 +45,6 @@ def load_config(path: str | None = None) -> KairosConfig:
         "BIRDEYE_API_KEY",
         "HELIUS_API_KEY",
         "COINGECKO_API_KEY",
-        "OPENAI_API_KEY",
     ]:
         value = os.environ.get(key_name, "")
         if value:
