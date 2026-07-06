@@ -41,13 +41,30 @@ That's it — `kairos demo` runs the full 5-agent pipeline on sample data with n
 ## Features
 
 - **5 specialized agents** — Research → Quant → Risk → Sentiment → Executor, run as a coordinated pipeline
-- **Walk-Forward Backtesting** — rolling-window out-of-sample validation
+- **Walk-Forward Backtesting** — rolling-window out-of-sample validation with per-window parameter selection (grid search on each train slice, applied out-of-sample to the test slice)
 - **Bootstrap Statistics** — p-values and confidence intervals on strategy returns
 - **Strategy Plugin System** — write custom strategies as plain Python classes
 - **6 Built-in Strategies** — momentum, mean_reversion, conservative, rsi, bb, ensemble
 - **Paper + Live Trading** — via Alpaca (free paper trading)
 - **HTML Reports** — one-click shareable research report
 - **6 Data Sources** — Yahoo Finance, FRED, CoinGecko, DexScreener, Birdeye, Mock
+
+### Walk-Forward Optimization
+
+Parameters are selected on each window's **train** slice only, then applied
+out-of-sample to its **test** slice — no test data leaks into selection:
+
+```python
+from kairos.backtesting.optimizer import StrategyOptimizer
+
+optimizer = StrategyOptimizer(data, train_size=90, test_size=30)
+result = optimizer.optimize_walk_forward({
+    "buy_threshold": [55, 60, 70],
+    "sell_threshold": [30, 40, 45],
+})
+print(result["aggregate"]["sharpe_ratio"])   # pooled out-of-sample Sharpe
+print(result["window_params"])               # params chosen per window
+```
 
 ## CLI Commands
 
