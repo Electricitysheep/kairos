@@ -111,6 +111,37 @@ class TAAnalyzer:
         }
 
     @staticmethod
+    def compute_macd_series(
+        df: pd.DataFrame, fast: int = 12, slow: int = 26, signal: int = 9
+    ) -> pd.DataFrame:
+        """
+        Compute MACD as per-bar series (causal — each row uses only bars up to it).
+
+        Unlike compute_macd(), which returns the latest values as scalars,
+        this returns full-length columns suitable for backtesting.
+
+        Returns:
+            DataFrame with columns: macd_line, signal_line, histogram,
+            is_bullish_cross (bool, same semantics as compute_macd applied at each bar)
+        """
+        close = df["close"]
+        ema_fast = close.ewm(span=fast, adjust=False).mean()
+        ema_slow = close.ewm(span=slow, adjust=False).mean()
+        macd_line = ema_fast - ema_slow
+        signal_line = macd_line.ewm(span=signal, adjust=False).mean()
+        histogram = macd_line - signal_line
+        is_bullish_cross = (macd_line > signal_line) & (macd_line.shift(1) <= signal_line.shift(1))
+        return pd.DataFrame(
+            {
+                "macd_line": macd_line,
+                "signal_line": signal_line,
+                "histogram": histogram,
+                "is_bullish_cross": is_bullish_cross.fillna(False),
+            },
+            index=df.index,
+        )
+
+    @staticmethod
     def compute_bollinger(df: pd.DataFrame, period: int = 20, std_dev: float = 2.0) -> dict:
         """
         Compute Bollinger Bands.
@@ -157,6 +188,38 @@ class TAAnalyzer:
             "bandwidth": float(bandwidth),
             "percent_b": float(percent_b),
         }
+
+    @staticmethod
+    def compute_bollinger_series(
+        df: pd.DataFrame, period: int = 20, std_dev: float = 2.0
+    ) -> pd.DataFrame:
+        """
+        Compute Bollinger Bands as per-bar series (causal).
+
+        Unlike compute_bollinger(), which returns the latest values as scalars,
+        this returns full-length columns suitable for backtesting.
+
+        Returns:
+            DataFrame with columns: upper, mid, lower, bandwidth, percent_b
+        """
+        close = df["close"]
+        mid = close.rolling(window=period).mean()
+        std = close.rolling(window=period).std()
+        upper = mid + std * std_dev
+        lower = mid - std * std_dev
+        band_range = upper - lower
+        bandwidth = (band_range / mid).where(mid != 0)
+        percent_b = ((close - lower) / band_range).where(band_range != 0)
+        return pd.DataFrame(
+            {
+                "upper": upper,
+                "mid": mid,
+                "lower": lower,
+                "bandwidth": bandwidth,
+                "percent_b": percent_b,
+            },
+            index=df.index,
+        )
 
     @staticmethod
     def compute_ema(df: pd.DataFrame, period: int) -> pd.Series:

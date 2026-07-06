@@ -90,16 +90,13 @@ class WalkForwardEngine:
         This avoids recomputing indicators for every bar in every window (100x+ faster).
         """
         result = self.data[["close"]].copy()
-        rsi_s = TAAnalyzer.compute_rsi(self.data, period=14)
-        result["rsi_14"] = rsi_s
-        ema_9 = TAAnalyzer.compute_ema(self.data, period=9)
-        result["ema_9"] = ema_9
-        ema_21 = TAAnalyzer.compute_ema(self.data, period=21)
-        result["ema_21"] = ema_21
-        macd_result = TAAnalyzer.compute_macd(self.data)
-        result["macd_histogram"] = macd_result["histogram"]
-        result["macd_bullish"] = 1 if macd_result["is_bullish_cross"] else 0
-        bb = TAAnalyzer.compute_bollinger(self.data)
+        result["rsi_14"] = TAAnalyzer.compute_rsi(self.data, period=14)
+        result["ema_9"] = TAAnalyzer.compute_ema(self.data, period=9)
+        result["ema_21"] = TAAnalyzer.compute_ema(self.data, period=21)
+        macd = TAAnalyzer.compute_macd_series(self.data)
+        result["macd_histogram"] = macd["histogram"]
+        result["macd_bullish"] = macd["is_bullish_cross"].astype(int)
+        bb = TAAnalyzer.compute_bollinger_series(self.data)
         result["bb_percent_b"] = bb["percent_b"]
         result["bb_upper"] = bb["upper"]
         result["bb_mid"] = bb["mid"]
