@@ -121,12 +121,18 @@ class WalkForwardEngine:
         self,
         strategy_config: dict | None = None,
         progress_callback: Callable[[int, int], None] | None = None,
+        param_grid: dict[str, list] | None = None,
     ) -> dict:
         """Run the walk-forward backtest with optional progress reporting.
 
         Args:
             strategy_config: Overrides agent_config for this run.
             progress_callback: Called as progress_callback(current, total) after each window.
+            param_grid: Optional {param: [values]} grid. When given, each
+                window's parameters are selected by grid search on that
+                window's TRAIN slice (ranked by Sharpe), then applied
+                out-of-sample to the TEST slice. Result gains a
+                "window_params" list. Classic (indicator) mode only.
         """
         config = {**self.agent_config, **(strategy_config or {})}
         splitter = WalkForwardSplitter(
@@ -143,8 +149,28 @@ class WalkForwardEngine:
         all_returns: list[float] = []
         self._precomputed = self._precompute_indicators()
 
+        combos: list[dict] | None = None
+        if param_grid:
+            if self._has_any_agent():
+                raise ValueError(
+                    "param_grid optimization requires classic (indicator) mode: "
+                    "agents are built once from a fixed config, so per-window "
+                    "parameter sweeps would silently not take effect"
+                )
+            import itertools
+
+            combos = [dict(zip(param_grid.keys(), c)) for c in itertools.product(*param_grid.values())]
+
+        window_params: list[dict] = []
         for i, window in enumerate(windows):
-            window_returns = self._run_window(window, config)
+            window_config = config
+            if combos is not None:
+                best_params, train_sharpe = self._select_params_on_train(window, config, combos)
+                window_config = {**config, **best_params}
+                window_params.append(
+                    {"window": window.name, "params": best_params, "train_sharpe": train_sharpe}
+                )
+            window_returns = self._run_range(window.test_start, window.test_end, window_config)
             all_returns.extend(window_returns)
             if progress_callback:
                 progress_callback(i + 1, len(windows))
@@ -158,20 +184,47 @@ class WalkForwardEngine:
         benchmark_returns = bench[prev_close > 0].dropna().tolist()
         benchmark_metrics = PerformanceMetrics(benchmark_returns)
 
-        return {
+        result = {
             "aggregate": metrics.compute_all(),
             "benchmark": benchmark_metrics.compute_all(),
             "all_returns": all_returns,
             "n_windows": len(windows),
             "strategy_config": config,
         }
+        if combos is not None:
+            result["window_params"] = window_params
+        return result
+
+    def _select_params_on_train(
+        self, window: WindowIndices, base_config: dict, combos: list[dict]
+    ) -> tuple[dict, float]:
+        """Grid-search params on the window's train slice, ranked by Sharpe.
+
+        Only train bars are touched here — the test slice stays out-of-sample
+        until the selected parameters are applied to it.
+        """
+        best_params: dict = combos[0]
+        best_sharpe = float("-inf")
+        for params in combos:
+            returns = self._run_range(window.train_start, window.train_end, {**base_config, **params})
+            sharpe = PerformanceMetrics(returns).compute_all()["sharpe_ratio"]
+            if sharpe > best_sharpe:
+                best_sharpe = sharpe
+                best_params = params
+        return best_params, best_sharpe
 
     def _run_window(self, window: WindowIndices, config: dict) -> list[float]:
+        return self._run_range(window.test_start, window.test_end, config)
+
+    def _run_range(self, start: int, end: int, config: dict) -> list[float]:
+        """Simulate the strategy over data[start:end] with a fresh portfolio."""
+        if self._precomputed is None:
+            self._precomputed = self._precompute_indicators()
         portfolio = SimulatedPortfolio(initial_cash=self.initial_cash)
         window_returns: list[float] = []
 
-        for idx, (_, row) in enumerate(self.data.iloc[window.test_start : window.test_end].iterrows()):
-            abs_idx = window.test_start + idx
+        for idx, (_, row) in enumerate(self.data.iloc[start:end].iterrows()):
+            abs_idx = start + idx
             current_data = self.data.iloc[: abs_idx + 1]
 
             if self._has_any_agent() and self._quant_agent and self._executor_agent:

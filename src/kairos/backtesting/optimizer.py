@@ -31,7 +31,30 @@ class StrategyOptimizer:
         self.test_size = test_size
         self.progress_callback = progress_callback
 
+    def optimize_walk_forward(self, param_grid: dict[str, list[Any]]) -> dict:
+        """Per-window walk-forward optimization (the methodologically sound path).
+
+        For every walk-forward window, parameters are grid-searched on the
+        TRAIN slice only (ranked by Sharpe) and then applied out-of-sample
+        to the TEST slice. Returns the engine result, including
+        "window_params" (the parameters chosen per window) and "aggregate"
+        (metrics over the pooled out-of-sample returns).
+        """
+        engine = WalkForwardEngine(
+            self.data,
+            train_size=self.train_size,
+            test_size=self.test_size,
+        )
+        return engine.run(param_grid=param_grid, progress_callback=self.progress_callback)
+
     def optimize(self, param_grid: dict[str, list[Any]]) -> list[dict]:
+        """Rank parameter combinations by pooled out-of-sample Sharpe.
+
+        WARNING: picking parameters from this ranking reuses the test
+        windows for selection (data snooping), so the top entry's Sharpe is
+        an optimistic estimate. Use optimize_walk_forward() when parameters
+        must be chosen on train data only.
+        """
         keys = list(param_grid.keys())
         combinations = list(itertools.product(*param_grid.values()))
         results = []
