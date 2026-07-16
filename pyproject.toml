@@ -39,7 +39,7 @@ Changelog = "https://github.com/Electricitysheep/kairos/blob/master/CHANGELOG.md
 
 [tool.poetry.dependencies]
 python = ">=3.10"
-typer = ">=0.26.8"
+typer = ">=0.27.0"
 pydantic = ">=2.0"
 pandas = ">=2.0"
 numpy = ">=1.24"
