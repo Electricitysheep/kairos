@@ -38,6 +38,19 @@ kairos analyze AAPL  # live stock / crypto analysis
 
 That's it — `kairos demo` runs the full 5-agent pipeline on sample data with no setup.
 
+## Point-in-time correctness
+
+The engine's core constraint: **a decision attributed to bar _i_ may use only information available at bar _i_.** Two guards enforce it:
+
+- **Prefix invariance** — indicators computed over the full series must be identical, on the overlap, to indicators computed over any prefix of it. If appending future bars changes a past value, that value depended on the future. ([`tests/test_engine_precompute.py`](tests/test_engine_precompute.py))
+- **Per-window parameter selection** — grid search runs on each window's **train** slice only; the winner is applied out-of-sample to the test slice, so parameters are never chosen on test data. ([`832ea84`](https://github.com/Electricitysheep/kairos/commit/832ea84))
+
+These guards exist because I shipped a look-ahead bias and had to remove it ([`13d02dd`](https://github.com/Electricitysheep/kairos/commit/13d02dd)). `compute_macd()` and `compute_bollinger()` return scalars describing the **latest** bar; assigning them to DataFrame columns broadcast one future-derived value across every row, contaminating 40 of the 100 points in the composite score.
+
+The instructive part: **it made results worse, not better.** On SPY (2020-01-02 – 2024-12-30, 1,257 daily bars) the leaked constants collapsed the signal so completely that the strategy generated one buy in the entire sample, never opened a position, and reported a Sharpe of exactly `0.0000`; after the fix, `0.9576`. Leakage is contamination, not inflation — its sign depends on the accidental content of the leaked value. That is why "performance looks too good" is an unreliable detector, and structural invariants are not.
+
+> Measured on Python 3.14.2 / pandas 3.0.3, windows train=90, embargo=5, test=30, rolling. No transaction costs are modelled — see [Limitations](#limitations).
+
 ## Features
 
 - **5 specialized agents** — Research → Quant → Risk → Sentiment → Executor, run as a coordinated pipeline
@@ -128,6 +141,16 @@ class MyStrategy(Strategy):
 ```
 
 Register it, and it shows up in `kairos leaderboard` and `kairos backtest` automatically. See [`examples/custom_strategy.py`](examples/custom_strategy.py) and [`notebooks/01_kairos_quickstart.ipynb`](notebooks/01_kairos_quickstart.ipynb) for full walkthroughs.
+
+## Limitations
+
+Stated plainly, because a backtester that hides these is worse than useless:
+
+- **No transaction costs** — commission, spread, and slippage are not modelled; trades use a fixed notional at the close price.
+- **No execution lag** — signal and fill happen on the same bar at the same price, which a live system could not achieve.
+- **Survivorship bias** — any tickers used in examples were selected with hindsight about which names survived.
+- **Single-instrument accounting** — one position at a time; no cross-sectional sizing or portfolio-level risk control.
+- **Price data only** — no fundamentals, so publication-date alignment of financial statements is out of scope here.
 
 ## Contributing
 
